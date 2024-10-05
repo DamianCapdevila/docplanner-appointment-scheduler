@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DocplannerAppointmentScheduler.Domain\DocplannerAppointmentScheduler.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

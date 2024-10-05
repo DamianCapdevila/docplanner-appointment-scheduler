@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace DocplannerAppointmentScheduler.Domain
 {
-    public class Slot
+    public class TimeSlot
     {
         public DateTime Start {  get; set; }
         public DateTime End { get; set; }
-        public Guid FacilityId { get; set; }
     }
 }

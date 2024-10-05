@@ -14,8 +14,10 @@ Using this Appointment Scheduler, patients can book appointments with a doctor.
 - Doctors interact with the availability service, we have no control over it.
 - Facility is fixed by the availability service, we have no control over it. We assume that at a prior stage the patient selected the facility, and the availability service provides the free slots for that particular facility.
 - Availability service provides slots that are fixed in duration.
+- In reality, availability service should store busy slots from us when we make an appointment. It doesn´t, but we assume it does.
 - There are several slots in a day, no slot can overlap from one day to the other.
 - Patients can book 1 slot at a time.
+- No booking on Saturdays
 - First patient to book a given slot wins... this could be handled better, but maybe in a further step.
 - Patients interact with the appointment scheduler service, we have control over it.
 - We assume that the patients already have created a user in the appointment scheduler, so we don´t handle authentication here. 

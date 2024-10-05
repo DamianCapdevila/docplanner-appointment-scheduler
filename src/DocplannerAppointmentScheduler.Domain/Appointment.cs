@@ -8,7 +8,8 @@ namespace DocplannerAppointmentScheduler.Domain
 {
     public class Appointment
     {
-        public Slot Slot { get; set; }
+        public TimeSlot AvailableSlot { get; set; }
+        public Facility Facility { get; set; } 
         public string Comments { get; set; }
         public Patient Patient { get; set; }
         
