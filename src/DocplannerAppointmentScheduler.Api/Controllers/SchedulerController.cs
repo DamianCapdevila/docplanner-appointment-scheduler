@@ -21,6 +21,13 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         [HttpGet("availableSlots")]
         public async Task<IActionResult> GetAvailableSlots([FromQuery]DateTime date)
         {
+            // Validate that the selected date is a Monday. The UI should send a data that is a Monday to the Api. 
+            // If the user selects a day that is not a Monday, the UI will take care and pass a Monday to this Api.
+            if (date.DayOfWeek != DayOfWeek.Monday)
+            {
+                return BadRequest("The selected date must be a Monday.");
+            }
+
             try
             {
                 var availableSlots = await _schedulerService.GetAvailableSlots(date);
@@ -40,13 +47,20 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting available slots for date {Date}", date);
-                return StatusCode(500, new { message = "An error occurred while retrieving slots"});
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while retrieving slots"});
             }
         }
 
         [HttpPost("scheduleAppointment")]
         public async Task<IActionResult> ScheduleAppointment([FromBody] ScheduleAppointmentRequest request)
         {
+            //If any of the rules enforced in the ScheduleAppointmentRequest is broken, we should inform the Api user that the
+            //Request has the incorrect body, hence we return a 400, with the errors serialized so the client will know what´s wrong. 
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             try
             {
                 var appointmentRequest = new AppointmentRequestDTO
@@ -69,7 +83,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error scheduling an appointment at {Start}", request.Start);
-                return StatusCode(500, new { message = "An error occurred while scheduling an appointment" });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while scheduling an appointment" });
             }
         }
     }

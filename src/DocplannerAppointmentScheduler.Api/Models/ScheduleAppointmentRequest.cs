@@ -1,16 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DocplannerAppointmentScheduler.Api.Validators;
+using System.ComponentModel.DataAnnotations;
 
 namespace DocplannerAppointmentScheduler.Api.Models
 {
+    [DateRange(ErrorMessage = "Start time must be earlier than End time.")]
     public class ScheduleAppointmentRequest
     {
-        [Required]
+        [Required(ErrorMessage = "Start time is required")]
         public DateTime Start { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "End time is required")]
         public DateTime End { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "FacilityId is required")]
         public string FacilityId { get; set; }
 
         [Required]

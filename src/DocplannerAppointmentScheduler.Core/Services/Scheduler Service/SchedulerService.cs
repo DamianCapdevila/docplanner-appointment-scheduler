@@ -4,6 +4,11 @@ namespace DocplannerAppointmentScheduler.Core.Services
 {
     public class SchedulerService : ISchedulerService
     {
+        private IAvailabilityService _availabilityService;
+        public SchedulerService(IAvailabilityService availabilityService)
+        {
+            _availabilityService = availabilityService;
+        }
         public Task<List<TimeSlotDTO>> GetAvailableSlots(DateTime date)
         {
             throw new NotImplementedException();
