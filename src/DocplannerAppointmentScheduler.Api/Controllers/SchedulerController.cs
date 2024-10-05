@@ -21,13 +21,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         [HttpGet("availableSlots")]
         public async Task<IActionResult> GetAvailableSlots([FromQuery]DateTime date)
         {
-            // Validate that the selected date is a Monday. The UI should send a data that is a Monday to the Api. 
-            // If the user selects a day that is not a Monday, the UI will take care and pass a Monday to this Api.
-            if (date.DayOfWeek != DayOfWeek.Monday)
-            {
-                return BadRequest("The selected date must be a Monday.");
-            }
-
+            
             try
             {
                 var availableSlots = await _schedulerService.GetAvailableSlots(date);

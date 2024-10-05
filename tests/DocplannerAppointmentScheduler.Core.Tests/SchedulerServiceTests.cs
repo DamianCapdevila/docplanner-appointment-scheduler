@@ -15,7 +15,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         }
 
         [Test]
-        public async Task GetAvailableSlots_ShouldFormatDateCorrectly_AndReturnSlots()
+        public async Task GetAvailableSlots_ShouldFormatDateCorrectly_WhenEnteringDateInWrongFormat()
         {
             //Arrange
             
