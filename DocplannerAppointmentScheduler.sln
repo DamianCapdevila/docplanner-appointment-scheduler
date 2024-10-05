@@ -17,6 +17,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocplannerAppointmentSchedu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocplannerAppointmentScheduler.Core.Tests", "tests\DocplannerAppointmentScheduler.Core.Tests\DocplannerAppointmentScheduler.Core.Tests.csproj", "{92281BCE-76C0-49C2-A3EB-41E4FDD75943}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ED687914-DEBE-4BDF-A37C-AF02324628BD}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
