@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DocplannerAppointmentScheduler.Domain.DTOs
+namespace DocplannerAppointmentScheduler.Domain
 {
     public class WeeklyAvailabilityResponse
     {
