@@ -4,7 +4,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
 {
     public interface IAvailabilityService
     {
-        Task<WeeklyAvailabilityResponseDTO> GetWeeklyAvailabilityAsync(DateTime weekStart);
+        Task<WeeklyAvailabilityDTO> GetWeeklyAvailabilityAsync(int weekNumber, int year);
         Task<bool> TakeSlotAsync(AppointmentRequestDTO request);
     }
 }

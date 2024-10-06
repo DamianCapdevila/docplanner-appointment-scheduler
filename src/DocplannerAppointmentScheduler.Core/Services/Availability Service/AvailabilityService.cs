@@ -1,52 +1,76 @@
 ﻿using DocplannerAppointmentScheduler.Core.DTOs;
+using Newtonsoft.Json;
+using System.Globalization;
+using System.Net.Http.Headers;
+using System.Text;
+using AutoMapper;
 using DocplannerAppointmentScheduler.Domain;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace DocplannerAppointmentScheduler.Core.Services
 {
     public class AvailabilityService : IAvailabilityService
     {
+        private readonly IMapper _mapper;
         private HttpClient _httpClient;
-        public AvailabilityService(HttpClient httpClient)
+
+        public AvailabilityService(IMapper mapper)
         {
-            _httpClient = httpClient;
+            _mapper = mapper;
+            _httpClient = new HttpClient();
+            _httpClient.BaseAddress = new Uri("https://draliatest.azurewebsites.net/api/availability/");
+
+            string apiKey = "techuser:secretpassWord";
+
+            byte[] apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
+            string apiKeySecret = Convert.ToBase64String(apiKeyBytes);
             
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Basic", apiKeySecret);
         }
-        public async Task<WeeklyAvailabilityResponseDTO> GetWeeklyAvailabilityAsync(DateTime date)
+        public async Task<WeeklyAvailabilityDTO> GetWeeklyAvailabilityAsync(int weekNumber, int year)
         {
-            // Select the closest monday within the date the user selected.
-            //Todo: Implement
+            DateTime mondayOfSelectedWeek = ISOWeek.ToDateTime(year, weekNumber, DayOfWeek.Monday);
+            string mondayFormatted = mondayOfSelectedWeek.ToString("yyyyMMdd");
 
-            // Format the date as yyyyMMdd before sending it to the external API
-            string formattedDate = date.ToString("yyyyMMdd");
+            var externalServiceResponse = await _httpClient.GetAsync($"https://draliatest.azurewebsites.net/api/availability/GetWeeklyAvailability/{mondayFormatted}");
 
-            // Call the external API with the formatted date (mocked here)
-            var response = await _httpClient.GetAsync("https://draliatest.azurewebsites.net/api/availability/GetWeeklyAvailability/" + formattedDate);
-
-            // Example deserialized response (mocked for demonstration)
-            var weeklyAvailability = new WeeklyAvailabilityResponseDTO
+            if(!externalServiceResponse.IsSuccessStatusCode)
             {
-                Facility = new Facility { /* Facility details here */ },
-                SlotDurationMinutes = 30, // Assume each slot is 30 minutes long
-                Monday = new DaySchedule
-                {
-                    WorkPeriod = new WorkPeriod
-                    {
-                        StartHour = 9,
-                        EndHour = 17,
-                        LunchStartHour = 12,
-                        LunchEndHour = 13
-                    },
-                    BusySlots = new List<TimeSlot> 
-                    {
-                        new TimeSlot {Start = date, End = date},
-                        new TimeSlot {Start = date,End = date}
-                    }
-                   
-                }
-                
-            };
+                throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
+            }
+            
+            var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
+
+           
             return weeklyAvailability;
+        }
+
+        private async Task<WeeklyAvailabilityDTO> DetermineWeeklyAvailability(HttpResponseMessage externalServiceResponse)
+        {
+
+            var responseContent = await externalServiceResponse.Content.ReadAsStringAsync();
+            var facilityOccupancy = JsonConvert.DeserializeObject<FacilityOccupancyDTO>(responseContent);
+            return await CalculateWeeklyAvailability(facilityOccupancy);
+        }
+
+        private async Task<WeeklyAvailabilityDTO> CalculateWeeklyAvailability(FacilityOccupancyDTO? facilityOccupancy)
+        {
+            if (facilityOccupancy == null)
+            {
+                throw new ArgumentNullException(nameof(facilityOccupancy));
+            }
+            
+            FacilityOccupancy occupancy = _mapper.Map<FacilityOccupancy>(facilityOccupancy);
+
+            //Calculations of weekly availability are done inside the domain
+            var weeklyAvailability = new WeeklyAvailability(occupancy);
+
+            //Map weekly availability to its DTO to then pass it to the API
+            var weeklyAvailabilityDto =  _mapper.Map<WeeklyAvailabilityDTO>(weeklyAvailability);
+
+            //Return the DTO.
+            return weeklyAvailabilityDto;
         }
 
         public Task<bool> TakeSlotAsync(AppointmentRequestDTO request)

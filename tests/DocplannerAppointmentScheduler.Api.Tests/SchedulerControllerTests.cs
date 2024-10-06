@@ -42,10 +42,10 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var okResult = result as OkObjectResult;
             Assert.IsNotNull(okResult);
 
-            var response = okResult.Value as AvailableSlotsResponse;
+            var response = okResult.Value as GetAvailableSlotsResponse;
             Assert.IsNotNull(response);
 
-            Assert.That(response.Slots.Count, Is.EqualTo(availableSlots.Count));
+            Assert.That(response.FreeSlots.Count, Is.EqualTo(availableSlots.Count));
 
         }
 

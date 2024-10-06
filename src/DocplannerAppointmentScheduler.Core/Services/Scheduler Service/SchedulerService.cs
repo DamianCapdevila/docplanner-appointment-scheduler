@@ -9,9 +9,9 @@ namespace DocplannerAppointmentScheduler.Core.Services
         {
             _availabilityService = availabilityService;
         }
-        public Task<List<TimeSlotDTO>> GetAvailableSlots(DateTime date)
+        public Task<WeeklyAvailabilityDTO> GetAvailableSlots(int weekNumber, int year)
         {
-            throw new NotImplementedException();
+            return _availabilityService.GetWeeklyAvailabilityAsync(weekNumber, year);
         }
 
         public Task<bool> ScheduleAppointment(AppointmentRequestDTO appointmentRequest)

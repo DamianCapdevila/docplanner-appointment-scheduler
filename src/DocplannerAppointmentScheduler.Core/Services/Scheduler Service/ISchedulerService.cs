@@ -4,7 +4,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
 {
     public interface ISchedulerService
     {
-        public Task<List<TimeSlotDTO>> GetAvailableSlots(DateTime date);
+        public Task<WeeklyAvailabilityDTO> GetAvailableSlots(int weekNumber, int year);
         public Task<bool> ScheduleAppointment(AppointmentRequestDTO appointmentRequest);
     }
 }

@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DocplannerAppointmentScheduler.Api.Models
 {
+
+    [DateFutureness(ErrorMessage = "Start and End times must be in the future.")]
     [DateRange(ErrorMessage = "Start time must be earlier than End time.")]
     public class ScheduleAppointmentRequest
     {

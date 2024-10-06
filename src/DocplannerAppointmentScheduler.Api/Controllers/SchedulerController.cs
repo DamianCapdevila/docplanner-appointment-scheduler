@@ -2,6 +2,8 @@
 using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Api.Models;
+using Microsoft.VisualBasic;
+using System.Globalization;
 
 namespace DocplannerAppointmentScheduler.Api.Controllers
 {
@@ -19,29 +21,22 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         }
 
         [HttpGet("availableSlots")]
-        public async Task<IActionResult> GetAvailableSlots([FromQuery]DateTime date)
+        public async Task<IActionResult> GetAvailableSlots([FromQuery]int weekNumber, [FromQuery]int year)
         {
-            
             try
             {
-                var availableSlots = await _schedulerService.GetAvailableSlots(date);
-
-                var response = new AvailableSlotsResponse
-                {
-                    Date = date,
-                    Slots = availableSlots.Select(slot => new SlotResponse
-                    {
-                        Start = slot.Start,
-                        End = slot.End
-                    }).ToList()
-                };
-
-                return Ok(response);
+                var availableSlots = await _schedulerService.GetAvailableSlots(weekNumber, year);
+                return Ok(availableSlots);
+            }
+            catch(HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Error getting weekly availability from the external availability service." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting available slots for date {Date}", date);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while retrieving slots"});
+                _logger.LogError(ex, "Error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while retrieving available slots."});
             }
         }
 
@@ -59,7 +54,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             {
                 var appointmentRequest = new AppointmentRequestDTO
                 {
-                    Slot = new TimeSlotDTO { Start = request.Start, End = request.End },
+                    Slot = new FreeSlotDTO { Start = request.Start, End = request.End },
                     FacilityId = request.FacilityId,
                     Comment = request.Comment,
                     Patient = new PatientDTO

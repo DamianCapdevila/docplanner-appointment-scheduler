@@ -1,6 +1,10 @@
 using DocplannerAppointmentScheduler.Core.Services;
+using DocplannerAppointmentScheduler.Core.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add automapper used in core services.
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Add services to the container.
 builder.Services.AddScoped<ISchedulerService, SchedulerService>();
