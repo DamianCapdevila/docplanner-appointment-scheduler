@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Core.Services;
+using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Api.Models;
-using Microsoft.VisualBasic;
 using System.Globalization;
+using AutoMapper;
 
 namespace DocplannerAppointmentScheduler.Api.Controllers
 {
@@ -13,11 +13,13 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
     {
         private readonly ISchedulerService _schedulerService;
         private readonly ILogger _logger;
+        private readonly IMapper _mapper;
 
-        public SchedulerController(ISchedulerService schedulerService, ILogger<SchedulerController> logger)
+        public SchedulerController(ISchedulerService schedulerService, ILogger<SchedulerController> logger, IMapper mapper)
         {
             _schedulerService = schedulerService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpGet("availableSlots")]
@@ -52,10 +54,9 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         }
 
         [HttpPost("scheduleAppointment")]
-        public async Task<IActionResult> ScheduleAppointment([FromBody] ScheduleAppointmentRequest request)
+        public async Task<IActionResult> ScheduleAppointment([FromBody] AppointmentRequest request)
         {
-            //If any of the rules enforced in the ScheduleAppointmentRequest is broken, we should inform the Api user that the
-            //Request has the incorrect body, hence we return a 400, with the errors serialized so the client will know what´s wrong. 
+            
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -63,22 +64,17 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
 
             try
             {
-                var appointmentRequest = new AppointmentRequestDTO
-                {
-                    Slot = new FreeSlotDTO { Start = request.Start, End = request.End },
-                    FacilityId = request.FacilityId,
-                    Comment = request.Comment,
-                    Patient = new PatientDTO
-                    {
-                        Name = request.PatientRequest.Name,
-                        SecondName = request.PatientRequest.SecondName,
-                        Email = request.PatientRequest.Email,
-                        Phone = request.PatientRequest.Phone
-                    }
-
-                };
+                var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
                 var appointmentScheduled = await _schedulerService.ScheduleAppointment(appointmentRequest);
-                return Ok(appointmentScheduled);
+                
+                if (appointmentScheduled)
+                {
+                    return Ok(new { message = "Appointment scheduled successfully!" });
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while scheduling an appointment" });
+                }
             }
             catch (Exception ex)
             {

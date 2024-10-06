@@ -32,8 +32,8 @@
             {
                 return new DaySchedule
                 {
-                    Day = day, // Set correct date
-                    AvailableSlots = new List<FreeSlot>() // No available slots
+                    Day = day, 
+                    AvailableSlots = new List<FreeSlot>() 
                 };
             }
 

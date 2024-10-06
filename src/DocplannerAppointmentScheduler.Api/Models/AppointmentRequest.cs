@@ -6,11 +6,13 @@ namespace DocplannerAppointmentScheduler.Api.Models
 
     [DateFutureness(ErrorMessage = "Start and End times must be in the future.")]
     [DateRange(ErrorMessage = "Start time must be earlier than End time.")]
-    public class ScheduleAppointmentRequest
+    public class AppointmentRequest
     {
+        [DateFormat(ErrorMessage = "Start time must be in the format yyyy-MM-ddTHH:mm:ss.")]
         [Required(ErrorMessage = "Start time is required")]
         public DateTime Start { get; set; }
 
+        [DateFormat(ErrorMessage = "End time must be in the format yyyy-MM-ddTHH:mm:ss.")]
         [Required(ErrorMessage = "End time is required")]
         public DateTime End { get; set; }
 

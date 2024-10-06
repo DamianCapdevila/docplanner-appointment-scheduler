@@ -16,7 +16,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
         public Task<bool> ScheduleAppointment(AppointmentRequestDTO appointmentRequest)
         {
-            throw new NotImplementedException();
+            return _availabilityService.TakeSlotAsync(appointmentRequest);
         }
     }
 }

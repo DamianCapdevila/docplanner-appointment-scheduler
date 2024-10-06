@@ -107,9 +107,34 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
         }
 
-        public Task<bool> TakeSlotAsync(AppointmentRequestDTO request)
+        public async Task<bool> TakeSlotAsync(AppointmentRequestDTO request)
         {
-            throw new NotImplementedException();
+            try
+            {
+                request.Slot.Start.ToString("yyyy-MM-ddTHH:mm:ss");
+                request.Slot.End.ToString("yyyy-MM-ddTHH:mm:ss");
+
+                var body = JsonConvert.SerializeObject(request);
+                var content = new StringContent(body, Encoding.UTF8, "application/json");
+
+                var externalServiceResponse = await _httpClient.PostAsync("https://draliatest.azurewebsites.net/api/availability/TakeSlot", content);
+
+                if (!externalServiceResponse.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
+                }
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
         }
     }
 }

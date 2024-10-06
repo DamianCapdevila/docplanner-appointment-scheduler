@@ -106,7 +106,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         public async Task ScheduleAppointment_ShouldReturnOk_OnSuccess()
         {
             //Arrange
-            var request = new ScheduleAppointmentRequest
+            var request = new AppointmentRequest
             {
                 Start = DateTime.Now,
                 End = DateTime.Now.AddMinutes(10),

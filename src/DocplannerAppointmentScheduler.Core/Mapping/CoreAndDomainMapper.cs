@@ -2,11 +2,13 @@
 using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Domain;
 
+
 namespace DocplannerAppointmentScheduler.Core.Mapping
 {
-    public class MappingProfile : Profile
+    //Handles mapping between Core and Domain layers.
+    public class CoreAndDomainMapper : Profile
     {
-        public MappingProfile()
+        public CoreAndDomainMapper()
         {
             // Mapping for FacilityOccupancy
             CreateMap<FacilityOccupancyDTO, FacilityOccupancy>()

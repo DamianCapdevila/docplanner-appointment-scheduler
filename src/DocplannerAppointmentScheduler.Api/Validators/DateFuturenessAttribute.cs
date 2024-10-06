@@ -7,8 +7,12 @@ namespace DocplannerAppointmentScheduler.Api.Validators
     {
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            var request = (ScheduleAppointmentRequest)validationContext.ObjectInstance;
-            if (request.Start <= DateTime.Now || request.End <= DateTime.Now)
+            if (validationContext.ObjectInstance is not AppointmentRequest request)
+            {
+                return new ValidationResult("Invalid object instance. Start/End date are not in the format yyyy-MM-ddTHH:mm:ss");
+            }
+
+            if (request.Start <= DateTime.UtcNow || request.End <= DateTime.UtcNow)
             {
                 return new ValidationResult("Start and End times must be in the future.");
             }
