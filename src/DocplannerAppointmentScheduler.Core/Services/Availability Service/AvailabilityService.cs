@@ -39,10 +39,8 @@ namespace DocplannerAppointmentScheduler.Core.Services
             {
                 throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
             }
-            
-            var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
 
-           
+            var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
             return weeklyAvailability;
         }
 
@@ -51,10 +49,10 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
             var responseContent = await externalServiceResponse.Content.ReadAsStringAsync();
             var facilityOccupancy = JsonConvert.DeserializeObject<FacilityOccupancyDTO>(responseContent);
-            return await CalculateWeeklyAvailability(facilityOccupancy);
+            return CalculateWeeklyAvailability(facilityOccupancy);
         }
 
-        private async Task<WeeklyAvailabilityDTO> CalculateWeeklyAvailability(FacilityOccupancyDTO? facilityOccupancy)
+        private WeeklyAvailabilityDTO CalculateWeeklyAvailability(FacilityOccupancyDTO? facilityOccupancy)
         {
             if (facilityOccupancy == null)
             {
@@ -63,13 +61,13 @@ namespace DocplannerAppointmentScheduler.Core.Services
             
             FacilityOccupancy occupancy = _mapper.Map<FacilityOccupancy>(facilityOccupancy);
 
-            //Calculations of weekly availability are done inside the domain
+            
             var weeklyAvailability = new WeeklyAvailability(occupancy);
 
-            //Map weekly availability to its DTO to then pass it to the API
+            
             var weeklyAvailabilityDto =  _mapper.Map<WeeklyAvailabilityDTO>(weeklyAvailability);
 
-            //Return the DTO.
+            
             return weeklyAvailabilityDto;
         }
 

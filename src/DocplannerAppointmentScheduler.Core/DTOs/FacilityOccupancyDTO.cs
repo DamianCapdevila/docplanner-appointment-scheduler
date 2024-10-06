@@ -7,7 +7,7 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
     /// </summary>
     public class FacilityOccupancyDTO
     {
-        [JsonProperty("FacilityDTO")]
+        [JsonProperty("Facility")]
         public FacilityDTO Facility { get; set; }
 
         [JsonProperty("SlotDurationMinutes")]
@@ -43,7 +43,7 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
 
     public class DayOccupancyDTO
     {
-        [JsonProperty("WorkPeriodDTO")]
+        [JsonProperty("WorkPeriod")]
         public WorkPeriodDTO WorkPeriod { get; set; }
 
         [JsonProperty("BusySlots")]
