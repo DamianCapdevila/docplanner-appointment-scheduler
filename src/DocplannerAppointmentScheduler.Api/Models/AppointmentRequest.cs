@@ -17,7 +17,7 @@ namespace DocplannerAppointmentScheduler.Api.Models
         public DateTime End { get; set; }
 
         [Required(ErrorMessage = "FacilityId is required")]
-        public string FacilityId { get; set; }
+        public Guid FacilityId { get; set; }
 
         [Required]
         [StringLength(100)]

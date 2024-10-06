@@ -111,10 +111,10 @@ namespace DocplannerAppointmentScheduler.Core.Services
         {
             try
             {
-                request.Slot.Start.ToString("yyyy-MM-ddTHH:mm:ss");
-                request.Slot.End.ToString("yyyy-MM-ddTHH:mm:ss");
+                request.Start.ToString("yyyy-MM-ddTHH:mm:ss");
+                request.End.ToString("yyyy-MM-ddTHH:mm:ss");
 
-                var body = JsonConvert.SerializeObject(request);
+                var body = JsonConvert.SerializeObject(request, Formatting.Indented);
                 var content = new StringContent(body, Encoding.UTF8, "application/json");
 
                 var externalServiceResponse = await _httpClient.PostAsync("https://draliatest.azurewebsites.net/api/availability/TakeSlot", content);

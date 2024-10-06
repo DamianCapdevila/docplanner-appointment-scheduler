@@ -1,14 +1,16 @@
-﻿namespace DocplannerAppointmentScheduler.Core.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DocplannerAppointmentScheduler.Core.DTOs
 {
     /// <summary>
     /// Based on incoming data from our API, this class will be used for making a post request to the external availability service to take a slot.
     /// </summary>
     public class AppointmentRequestDTO
     {
-        public FreeSlotDTO Slot { get; set; }
-
-        public string FacilityId { get; set; }
-
+        
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
+        public Guid FacilityId { get; set; }
         public string Comment { get; set; }
         public PatientDTO Patient { get; set; }
     }
