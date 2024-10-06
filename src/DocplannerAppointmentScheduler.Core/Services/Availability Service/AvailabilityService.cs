@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using AutoMapper;
 using DocplannerAppointmentScheduler.Domain;
+using System.Diagnostics;
 
 
 namespace DocplannerAppointmentScheduler.Core.Services
@@ -30,26 +31,52 @@ namespace DocplannerAppointmentScheduler.Core.Services
         }
         public async Task<WeeklyAvailabilityDTO> GetWeeklyAvailabilityAsync(int weekNumber, int year)
         {
-            DateTime mondayOfSelectedWeek = ISOWeek.ToDateTime(year, weekNumber, DayOfWeek.Monday);
-            string mondayFormatted = mondayOfSelectedWeek.ToString("yyyyMMdd");
-
-            var externalServiceResponse = await _httpClient.GetAsync($"https://draliatest.azurewebsites.net/api/availability/GetWeeklyAvailability/{mondayFormatted}");
-
-            if(!externalServiceResponse.IsSuccessStatusCode)
+            try
             {
-                throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
-            }
+                DateTime mondayOfSelectedWeek = ISOWeek.ToDateTime(year, weekNumber, DayOfWeek.Monday);
+                string mondayFormatted = mondayOfSelectedWeek.ToString("yyyyMMdd");
 
-            var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
-            return weeklyAvailability;
+                var externalServiceResponse = await _httpClient.GetAsync($"https://draliatest.azurewebsites.net/api/availability/GetWeeklyAvailability/{mondayFormatted}");
+
+                if (!externalServiceResponse.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
+                }
+
+                var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
+                return weeklyAvailability;
+            }
+            catch (HttpRequestException ex)
+            {
+                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
         }
 
         private async Task<WeeklyAvailabilityDTO> DetermineWeeklyAvailability(HttpResponseMessage externalServiceResponse)
         {
 
-            var responseContent = await externalServiceResponse.Content.ReadAsStringAsync();
-            var facilityOccupancy = JsonConvert.DeserializeObject<FacilityOccupancyDTO>(responseContent);
-            return CalculateWeeklyAvailability(facilityOccupancy);
+            try
+            {
+                var responseContent = await externalServiceResponse.Content.ReadAsStringAsync();
+                var facilityOccupancy = JsonConvert.DeserializeObject<FacilityOccupancyDTO>(responseContent);
+                return CalculateWeeklyAvailability(facilityOccupancy);
+            }
+            catch (JsonException ex)
+            {
+                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
         }
 
         private WeeklyAvailabilityDTO CalculateWeeklyAvailability(FacilityOccupancyDTO? facilityOccupancy)
@@ -58,17 +85,26 @@ namespace DocplannerAppointmentScheduler.Core.Services
             {
                 throw new ArgumentNullException(nameof(facilityOccupancy));
             }
-            
-            FacilityOccupancy occupancy = _mapper.Map<FacilityOccupancy>(facilityOccupancy);
 
-            
-            var weeklyAvailability = new WeeklyAvailability(occupancy);
+            try
+            {
+                FacilityOccupancy occupancy = _mapper.Map<FacilityOccupancy>(facilityOccupancy);
+                var weeklyAvailability = new WeeklyAvailability(occupancy);
 
-            
-            var weeklyAvailabilityDto =  _mapper.Map<WeeklyAvailabilityDTO>(weeklyAvailability);
 
-            
-            return weeklyAvailabilityDto;
+                var weeklyAvailabilityDto = _mapper.Map<WeeklyAvailabilityDTO>(weeklyAvailability);
+                return weeklyAvailabilityDto;
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
+                throw;
+            }
         }
 
         public Task<bool> TakeSlotAsync(AppointmentRequestDTO request)

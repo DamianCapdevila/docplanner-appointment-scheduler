@@ -25,6 +25,17 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         {
             try
             {
+                //Validation to ensure the requested week is the current one or a week in the future.
+                var currentDate = DateTime.Now; 
+                var mondayInSelectedWeek = ISOWeek.ToDateTime(year, weekNumber, DayOfWeek.Monday);
+                var sundayInSelectedWeek = mondayInSelectedWeek.AddDays(6);
+                var selectedWeekIsInThePast = currentDate.Date > sundayInSelectedWeek;
+
+                if (selectedWeekIsInThePast)
+                {
+                    return BadRequest(new { message = "The selected week has already passed. Please choose a future week." });
+                }
+
                 var availableSlots = await _schedulerService.GetAvailableSlots(weekNumber, year);
                 return Ok(availableSlots);
             }
