@@ -90,14 +90,14 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var response = okResult.Value as WeeklyAvailabilityDTO;
             Assert.IsNotNull(response);
 
-            //Check that the content of the response contains no available 
+            //Check that the content of the response contains no available slots
             Assert.That(response.DaySchedules.Sum(ds => ds.AvailableSlots.Count), Is.EqualTo(numberOfAvailableSlots));
         }
 
         private WeeklyAvailabilityDTO CreateWeeklyAvailability(int numberOfAvailableSlots, uint ammountDaySchedules)
         {
             List<FreeSlotDTO> availableSlots = CreateAvailableSlots(numberOfAvailableSlots);
-            List<DayScheduleDTO> daySchedules = CreateDaySchedules(ref ammountDaySchedules, availableSlots);
+            List<DayScheduleDTO> daySchedules = CreateDaySchedules(ammountDaySchedules, availableSlots);
             FacilityDTO facility = CreateFacility("TestFacility", "TestAdress 123");
 
             return new WeeklyAvailabilityDTO
@@ -117,7 +117,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             };
         }
 
-        private static List<DayScheduleDTO> CreateDaySchedules(ref uint ammountDaySchedules, List<FreeSlotDTO> availableSlots)
+        private static List<DayScheduleDTO> CreateDaySchedules(uint ammountDaySchedules, List<FreeSlotDTO> availableSlots)
         {
             var daySchedules = new List<DayScheduleDTO>();
 
