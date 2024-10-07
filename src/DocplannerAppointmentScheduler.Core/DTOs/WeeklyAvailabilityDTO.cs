@@ -26,11 +26,9 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
     public class FreeSlotDTO
     {
         [JsonProperty("start")]
-        [JsonConverter(typeof(DateTimeWithoutTimezoneConverter))]
         public DateTime Start { get; set; }
 
         [JsonProperty("end")]
-        [JsonConverter(typeof(DateTimeWithoutTimezoneConverter))]
         public DateTime End { get; set; }
     }
 }
