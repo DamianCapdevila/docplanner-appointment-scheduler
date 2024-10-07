@@ -24,31 +24,26 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         }
 
         [HttpGet("availableSlots")]
-        public async Task<IActionResult> GetAvailableSlots([FromQuery]int weekNumber, [FromQuery]int year)
+        public async Task<IActionResult> GetAvailableSlots([FromQuery] AvailableSlotsRequest request)
         {
             try
             {
-                var currentDate = DateTime.Now; 
-                var mondayInSelectedWeek = ISOWeek.ToDateTime(year, weekNumber, DayOfWeek.Monday);
-                var sundayInSelectedWeek = mondayInSelectedWeek.AddDays(6);
-                var selectedWeekIsInThePast = currentDate.Date > sundayInSelectedWeek;
-
-                if (selectedWeekIsInThePast)
+                if (!ModelState.IsValid)
                 {
-                    return BadRequest(new { message = "The selected week has already passed. Please choose a future week." });
+                    return BadRequest(ModelState);
                 }
 
-                var availableSlots = await _schedulerService.GetAvailableSlots(weekNumber, year);
+                var availableSlots = await _schedulerService.GetAvailableSlots(request.WeekNumber, request.Year);
                 return Ok(availableSlots);
             }
             catch(HttpRequestException ex)
             {
-                _logger.LogError(ex, "External service error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
+                _logger.LogError(ex, "External service error getting available slots for week {WeekNumber}, year {Year}.", request.WeekNumber, request.Year);
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Error getting weekly availability from the external availability service." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Internal error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
+                _logger.LogError(ex, "Internal error getting available slots for week {WeekNumber}, year {Year}.", request.WeekNumber, request.Year);
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while retrieving available slots."});
             }
         }
