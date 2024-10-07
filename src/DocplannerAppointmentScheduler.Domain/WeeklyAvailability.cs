@@ -3,7 +3,10 @@
     public class WeeklyAvailability
     {
         private FacilityOccupancy _facilityOccupancy;
-        private int _slotDurationMinutes; 
+        private int _slotDurationMinutes;
+
+        //If we want to change what DateTime format does the business logic use, we will change this field.
+        private DateTimeKind _dateTimeKind;
 
         public Facility Facility { get; set; }
         public List<DaySchedule> DaySchedules { get; set; }
@@ -11,7 +14,8 @@
         public WeeklyAvailability(FacilityOccupancy facilityOccupancy)
         {
             _facilityOccupancy = facilityOccupancy;
-            _slotDurationMinutes = facilityOccupancy.SlotDurationMinutes; 
+            _slotDurationMinutes = facilityOccupancy.SlotDurationMinutes;
+            _dateTimeKind = DateTimeKind.Unspecified;
             Facility = facilityOccupancy.Facility;
             DaySchedules = new List<DaySchedule>();
             CalculateWeeklyAvailability();
@@ -42,10 +46,10 @@
             var workPeriod = dayOccupancy.WorkPeriod;
             var availableSlots = new List<FreeSlot>();
 
-            var startTime = DateTime.Today.AddHours(workPeriod.StartHour);
-            var endTime = DateTime.Today.AddHours(workPeriod.EndHour);
-            var lunchStart = DateTime.Today.AddHours(workPeriod.LunchStartHour);
-            var lunchEnd = DateTime.Today.AddHours(workPeriod.LunchEndHour);
+            var startTime = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.StartHour), _dateTimeKind);
+            var endTime = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.EndHour), _dateTimeKind);
+            var lunchStart = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.LunchStartHour), _dateTimeKind);
+            var lunchEnd = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.LunchEndHour), _dateTimeKind);
 
             while (startTime < endTime)
             {
@@ -55,7 +59,7 @@
                     continue;
                 }
 
-                var slotEnd = startTime.AddMinutes(_slotDurationMinutes); 
+                var slotEnd = DateTime.SpecifyKind(startTime.AddMinutes(_slotDurationMinutes), _dateTimeKind);
 
                 bool isBusy = dayOccupancy.BusySlots.Any(busySlot =>
                     (startTime >= busySlot.Start && startTime < busySlot.End) ||
@@ -70,7 +74,7 @@
                     });
                 }
 
-                startTime = slotEnd; 
+                startTime = slotEnd;
             }
 
             return new DaySchedule
@@ -79,6 +83,7 @@
                 AvailableSlots = availableSlots
             };
         }
+
     }
 
     public class DaySchedule

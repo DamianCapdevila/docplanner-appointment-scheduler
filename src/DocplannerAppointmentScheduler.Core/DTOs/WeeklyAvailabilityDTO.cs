@@ -9,15 +9,15 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
     {
         [JsonProperty("facility")]
         public FacilityDTO Facility { get; set; }
+
         [JsonProperty("daySchedules")]
         public List<DayScheduleDTO> DaySchedules { get; set; }
-
     }
 
     public class DayScheduleDTO
     {
         [JsonProperty("day")]
-        public string Day { get; set; }  
+        public string Day { get; set; }
 
         [JsonProperty("availableSlots")]
         public List<FreeSlotDTO> AvailableSlots { get; set; }
@@ -26,8 +26,11 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
     public class FreeSlotDTO
     {
         [JsonProperty("start")]
+        [JsonConverter(typeof(DateTimeWithoutTimezoneConverter))]
         public DateTime Start { get; set; }
+
         [JsonProperty("end")]
+        [JsonConverter(typeof(DateTimeWithoutTimezoneConverter))]
         public DateTime End { get; set; }
     }
 }
