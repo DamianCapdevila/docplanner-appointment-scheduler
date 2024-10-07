@@ -36,14 +36,12 @@ namespace DocplannerAppointmentScheduler.Core.Mapping
             // Mapping for WeeklyAvailability
             CreateMap<WeeklyAvailability, WeeklyAvailabilityDTO>()
                 .ForMember(dest => dest.Facility, opt => opt.MapFrom(src => src.Facility))
-                .ForMember(dest => dest.SlotDurationMinutes, opt => opt.MapFrom(src => src.SlotDurationMinutes))
                 .ForMember(dest => dest.DaySchedules, opt => opt.MapFrom(src => src.DaySchedules));
 
             CreateMap<WeeklyAvailabilityDTO, WeeklyAvailability>(); // Add reverse mapping for WeeklyAvailability
 
             CreateMap<DaySchedule, DayScheduleDTO>()
-                .ForMember(dest => dest.Day, opt => opt.MapFrom(src => src.Day.ToString()))  // Convert enum to string
-                .ForMember(dest => dest.WorkPeriod, opt => opt.MapFrom(src => src.WorkPeriod))
+                .ForMember(dest => dest.Day, opt => opt.MapFrom(src => src.Day.ToString()))  // Convert enum to 
                 .ForMember(dest => dest.AvailableSlots, opt => opt.MapFrom(src => src.AvailableSlots));
 
             CreateMap<DayScheduleDTO, DaySchedule>(); // Add reverse mapping for DaySchedule

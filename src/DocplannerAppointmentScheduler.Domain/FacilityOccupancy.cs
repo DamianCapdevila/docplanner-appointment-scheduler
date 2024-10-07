@@ -12,6 +12,8 @@
         public DayOccupancy Wednesday { get; set; }
         public DayOccupancy Thursday { get; set; }
         public DayOccupancy Friday { get; set; }
+        public DayOccupancy Saturday { get; set; }
+        public DayOccupancy Sunday { get; set; }
     }
 
     /// <summary>

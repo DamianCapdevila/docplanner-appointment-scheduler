@@ -7,8 +7,9 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
     /// </summary>
     public class WeeklyAvailabilityDTO
     {
+        [JsonProperty("facility")]
         public FacilityDTO Facility { get; set; }
-        public int SlotDurationMinutes { get; set; }
+        [JsonProperty("daySchedules")]
         public List<DayScheduleDTO> DaySchedules { get; set; }
 
     }
@@ -18,16 +19,15 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
         [JsonProperty("day")]
         public string Day { get; set; }  
 
-        [JsonProperty("workPeriod")]
-        public WorkPeriodDTO WorkPeriod { get; set; }
-
         [JsonProperty("availableSlots")]
         public List<FreeSlotDTO> AvailableSlots { get; set; }
     }
 
     public class FreeSlotDTO
     {
+        [JsonProperty("start")]
         public DateTime Start { get; set; }
+        [JsonProperty("end")]
         public DateTime End { get; set; }
     }
 }

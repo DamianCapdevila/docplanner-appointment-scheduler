@@ -3,14 +3,15 @@
     public class WeeklyAvailability
     {
         private FacilityOccupancy _facilityOccupancy;
+        private int _slotDurationMinutes; 
+
         public Facility Facility { get; set; }
-        public int SlotDurationMinutes { get; set; }
         public List<DaySchedule> DaySchedules { get; set; }
 
         public WeeklyAvailability(FacilityOccupancy facilityOccupancy)
         {
             _facilityOccupancy = facilityOccupancy;
-            SlotDurationMinutes = facilityOccupancy.SlotDurationMinutes;
+            _slotDurationMinutes = facilityOccupancy.SlotDurationMinutes; 
             Facility = facilityOccupancy.Facility;
             DaySchedules = new List<DaySchedule>();
             CalculateWeeklyAvailability();
@@ -23,17 +24,18 @@
             DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Wednesday, _facilityOccupancy.Wednesday));
             DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Thursday, _facilityOccupancy.Thursday));
             DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Friday, _facilityOccupancy.Friday));
+            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Saturday, _facilityOccupancy.Saturday)); 
+            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Sunday, _facilityOccupancy.Sunday)); 
         }
 
         private DaySchedule CalculateDayAvailability(DayOfWeek day, DayOccupancy dayOccupancy)
         {
-            // If dayOccupancy is null, it means no availability is filled for this day, so return a DaySchedule with no slots
-            if (dayOccupancy == null)
+            if (dayOccupancy == null || dayOccupancy.WorkPeriod == null)
             {
                 return new DaySchedule
                 {
-                    Day = day, 
-                    AvailableSlots = new List<FreeSlot>() 
+                    Day = day.ToString(),
+                    AvailableSlots = new List<FreeSlot>()
                 };
             }
 
@@ -45,19 +47,16 @@
             var lunchStart = DateTime.Today.AddHours(workPeriod.LunchStartHour);
             var lunchEnd = DateTime.Today.AddHours(workPeriod.LunchEndHour);
 
-            // Iterate from start to end, skipping busy slots
             while (startTime < endTime)
             {
-                // Skip lunch break
                 if (startTime >= lunchStart && startTime < lunchEnd)
                 {
                     startTime = lunchEnd;
                     continue;
                 }
 
-                var slotEnd = startTime.AddMinutes(SlotDurationMinutes);
+                var slotEnd = startTime.AddMinutes(_slotDurationMinutes); 
 
-                // Check if the slot overlaps with any busy slots
                 bool isBusy = dayOccupancy.BusySlots.Any(busySlot =>
                     (startTime >= busySlot.Start && startTime < busySlot.End) ||
                     (slotEnd > busySlot.Start && slotEnd <= busySlot.End));
@@ -71,23 +70,20 @@
                     });
                 }
 
-                startTime = slotEnd; // Move to the next slot
+                startTime = slotEnd; 
             }
 
             return new DaySchedule
             {
-                Day = day, 
-                WorkPeriod = workPeriod,
+                Day = day.ToString(),
                 AvailableSlots = availableSlots
             };
         }
-
     }
 
     public class DaySchedule
     {
-        public DayOfWeek Day { get; set; }
-        public WorkPeriod WorkPeriod { get; set; }
+        public string Day { get; set; }
         public List<FreeSlot> AvailableSlots { get; set; }
     }
 
@@ -95,9 +91,5 @@
     {
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
-
     }
-
 }
-
-

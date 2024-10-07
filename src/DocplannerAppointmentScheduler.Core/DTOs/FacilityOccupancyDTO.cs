@@ -27,6 +27,12 @@ namespace DocplannerAppointmentScheduler.Core.DTOs
 
         [JsonProperty("Friday")]
         public DayOccupancyDTO Friday { get; set; }
+        
+        [JsonProperty("Saturday")]
+        public DayOccupancyDTO Saturday { get; set; }
+
+        [JsonProperty("Sunday")]
+        public DayOccupancyDTO Sunday { get; set; }
     }
 
     public class FacilityDTO

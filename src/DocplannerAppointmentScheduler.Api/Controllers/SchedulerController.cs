@@ -4,6 +4,7 @@ using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Api.Models;
 using System.Globalization;
 using AutoMapper;
+using DocplannerAppointmentScheduler.Domain;
 
 namespace DocplannerAppointmentScheduler.Api.Controllers
 {
@@ -27,7 +28,6 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         {
             try
             {
-                //Validation to ensure the requested week is the current one or a week in the future.
                 var currentDate = DateTime.Now; 
                 var mondayInSelectedWeek = ISOWeek.ToDateTime(year, weekNumber, DayOfWeek.Monday);
                 var sundayInSelectedWeek = mondayInSelectedWeek.AddDays(6);
@@ -43,13 +43,13 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             }
             catch(HttpRequestException ex)
             {
-                _logger.LogError(ex, "Error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
+                _logger.LogError(ex, "External service error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Error getting weekly availability from the external availability service." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while retrieving available slots."});
+                _logger.LogError(ex, "Internal error getting available slots for week {WeekNumber}, year {Year}.", weekNumber, year);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while retrieving available slots."});
             }
         }
 
