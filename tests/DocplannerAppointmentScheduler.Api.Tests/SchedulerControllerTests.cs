@@ -38,6 +38,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
         }
 
+        #region GET availableSlots ENDPOINT TESTS
         #region Data passed to the controller is valid, controller returns OK with correct availability data
         [Test]
         public async Task GetAvailableSlots_ShouldReturnOk_WithAvailableSlots_WhenFreeSlotsAvailable()
@@ -319,6 +320,11 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
             Assert.That(objectResult.StatusCode, Is.EqualTo((int)HttpStatusCode.InternalServerError));
         }
+        #endregion
+        #endregion
+
+        #region POST scheduleAppointment ENDPOINT TESTS
+
         #endregion
     }
 }
