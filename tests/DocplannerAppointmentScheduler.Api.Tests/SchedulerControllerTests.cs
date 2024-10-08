@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using System.ComponentModel.DataAnnotations;
 using DocplannerAppointmentScheduler.Api.Validators;
+using System.Net;
 
 
 namespace DocplannerAppointmentScheduler.Api.Tests
@@ -37,7 +38,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
         }
 
-        #region Data passed to the controller is valid, we check the availability
+        #region Data passed to the controller is valid, controller returns OK with correct availability data
         [Test]
         public async Task GetAvailableSlots_ShouldReturnOk_WithAvailableSlots_WhenFreeSlotsAvailable()
         {
@@ -165,31 +166,85 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         }
         #endregion
 
-
-        #region Data passed to the controller is invalid, we check that meaningful errors are returned
+        #region Data passed to the controller is invalid, controller returns BadRequest with meaningful error messages
         [Test]
-        public async Task GetAvailableSlots_ShouldReturnBadRequest_WhenSelectedWeekIsInThePast()
+        public async Task GetAvailableSlots_ShouldReturnBadRequest_WithValidationErrorDetails_WhenSelectedWeekIsInThePast()
         {
             // Arrange
             int pastWeek = ISOWeek.GetWeekOfYear(DateTime.Now) - 1;
             int currentYear = DateTime.Now.Year;
             AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = pastWeek, Year = currentYear };
 
-            ValidateModel(request);
+            _schedullerController.ModelState.AddModelError("WeekNumber", "The selected week has already passed. Please choose a future week.");
             // Act
             var result = await _schedullerController.GetAvailableSlots(request);
 
             // Assert
             var badRequestResult = result as BadRequestObjectResult;
             Assert.IsNotNull(badRequestResult);
+
+            var modelState = badRequestResult.Value as SerializableError;
+            Assert.IsNotNull(modelState);
+            Assert.That(modelState.ContainsKey("WeekNumber"), Is.True);
         }
 
         [Test]
-        public async Task GetAvailableSlots_ShouldReturnBadRequest_WhenInvalidWeekAndOrYear()
+        public async Task GetAvailableSlots_ShouldReturnBadRequest_WithValidationErrorDetails_WhenInvalidWeek()
         {
             // Arrange
-            int invalidWeek = 100;  // Invalid week: a year never has 100 weeks
-            int invalidYear = -1;    // Invalid year: could never be negative
+            int invalidWeek = 60;  //A year has between 1 and  53 weeks.
+            int currentYear = DateTime.Now.Year;    
+            var invalidRequest = new AvailableSlotsRequest
+            {
+                WeekNumber = invalidWeek,
+                Year = currentYear
+            };
+
+            // Act
+            _schedullerController.ModelState.AddModelError("WeekNumber", "The week number must be between 1 and 53.");
+            var result = await _schedullerController.GetAvailableSlots(invalidRequest);
+
+            // Assert
+            var badRequestResult = result as BadRequestObjectResult;
+            Assert.IsNotNull(badRequestResult);
+
+            var modelState = badRequestResult.Value as SerializableError;
+            Assert.IsNotNull(modelState);
+            Assert.That(modelState.ContainsKey("WeekNumber"), Is.True);
+        }
+
+        [Test]
+        public async Task GetAvailableSlots_ShouldReturnBadRequest_WithValidationErrorDetails_WhenInvalidYear()
+        {
+            // Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);  
+            int invalidYear = -1; //Year must be positive.
+            var invalidRequest = new AvailableSlotsRequest
+            {
+                WeekNumber = currentWeek,
+                Year = invalidYear
+            };
+
+            // Act
+            _schedullerController.ModelState.AddModelError("Year", "The year must be a positive number.");
+            var result = await _schedullerController.GetAvailableSlots(invalidRequest);
+
+            // Assert
+            var badRequestResult = result as BadRequestObjectResult;
+            Assert.IsNotNull(badRequestResult);
+
+            var modelState = badRequestResult.Value as SerializableError;
+            Assert.IsNotNull(modelState);
+            Assert.That(modelState.ContainsKey("Year"), Is.True);
+            
+        }
+
+        [Test]
+        public async Task GetAvailableSlots_ShouldReturnBadRequest_WithValidationErrorDetails_WhenInvalidYearAndWeek()
+        {
+            // Arrange
+            int invalidWeek = 60; //A year has between 1 and  53 weeks.
+            int invalidYear = -1; //Year must be positive.
             var invalidRequest = new AvailableSlotsRequest
             {
                 WeekNumber = invalidWeek,
@@ -197,66 +252,73 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             };
 
             // Act
-            ValidateModel(invalidRequest);
+            _schedullerController.ModelState.AddModelError("Year", "The year must be a positive number.");
+            _schedullerController.ModelState.AddModelError("WeekNumber", "The week number must be between 1 and 53.");
             var result = await _schedullerController.GetAvailableSlots(invalidRequest);
 
             // Assert
-            Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
             var badRequestResult = result as BadRequestObjectResult;
-            var modelStateDict = badRequestResult.Value as SerializableError;
+            Assert.IsNotNull(badRequestResult);
 
-            Assert.Multiple(() =>
-            {
-                Assert.That(modelStateDict.ContainsKey("WeekNumber"), Is.True, "WeekNumber validation error should be present");
-                Assert.That(modelStateDict.ContainsKey("Year"), Is.True, "Year validation error should be present");
-            });
+            var modelState = badRequestResult.Value as SerializableError;
+            Assert.IsNotNull(modelState);
+            Assert.That(modelState.ContainsKey("Year"), Is.True);
+            Assert.That(modelState.ContainsKey("WeekNumber"), Is.True);
         }
 
-        private void ValidateModel(AvailableSlotsRequest model)
+        #endregion
+
+        #region Data passed to the controller is valid, scheduler service fails, controller returns ServiceUnavailable, InternalServerError
+        [Test]
+        public async Task GetAvailableSlots_ShouldReturnServiceUnavailable_WhenSchedulerService_ThrowsHttpRequestException()
         {
-            _schedullerController.ModelState.Clear();
+            //Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+            AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
 
-            // Standard property validations
-            var validationContext = new ValidationContext(model);
-            var validationResults = new List<ValidationResult>();
+            int numberOfAvailableSlots = 2;
+            uint ammountDaySchedules = 1;
+            var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
 
-            // Handle basic range validation for Year
-            if (model.Year <= 0)
-            {
-                _schedullerController.ModelState.AddModelError(
-                    nameof(model.Year),
-                    "The year must be a positive number.");
-            }
 
-            // Handle basic range validation for WeekNumber
-            if (model.WeekNumber < 1 || model.WeekNumber > 53)
-            {
-                _schedullerController.ModelState.AddModelError(
-                    nameof(model.WeekNumber),
-                    "The week number must be between 1 and 53.");
-            }
+            _schedulerServiceMock.Setup(s => s.GetAvailableSlots(request.WeekNumber, request.Year)).ThrowsAsync(new HttpRequestException());
 
-            // Handle FutureWeek validation only if Year and Week are within valid ranges
-            if (model.Year > 0 && model.WeekNumber >= 1 && model.WeekNumber <= 53)
-            {
-                try
-                {
-                    var futureWeekAttribute = new FutureWeekAttribute();
-                    var result = futureWeekAttribute.GetValidationResult(model, validationContext);
-                    if (result != null)
-                    {
-                        _schedullerController.ModelState.AddModelError(
-                            nameof(model.WeekNumber),
-                            result.ErrorMessage);
-                    }
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    // If ISOWeek.ToDateTime throws, we already have the basic range validation errors
-                }
-            }
+            //Act
+            var result = await _schedullerController.GetAvailableSlots(request);
+
+            //Assert
+            var objectResult = result as ObjectResult;
+            Assert.IsNotNull(objectResult);
+
+            Assert.That(objectResult.StatusCode, Is.EqualTo((int)HttpStatusCode.ServiceUnavailable));
         }
 
+        
+        [Test]
+        public async Task GetAvailableSlots_ShouldReturnInternalServerError_WhenSchedulerService_ThrowsException()
+        {
+            //Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+            AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
+
+            int numberOfAvailableSlots = 2;
+            uint ammountDaySchedules = 1;
+            var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
+
+
+            _schedulerServiceMock.Setup(s => s.GetAvailableSlots(request.WeekNumber, request.Year)).ThrowsAsync(new Exception());
+
+            //Act
+            var result = await _schedullerController.GetAvailableSlots(request);
+
+            //Assert
+            var objectResult = result as ObjectResult;
+            Assert.IsNotNull(objectResult);
+
+            Assert.That(objectResult.StatusCode, Is.EqualTo((int)HttpStatusCode.InternalServerError));
+        }
         #endregion
     }
 }
