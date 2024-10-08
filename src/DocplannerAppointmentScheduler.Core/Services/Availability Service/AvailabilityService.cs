@@ -18,17 +18,31 @@ namespace DocplannerAppointmentScheduler.Core.Services
         public AvailabilityService(IMapper mapper)
         {
             _mapper = mapper;
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("https://draliatest.azurewebsites.net/api/availability/");
+            _httpClient = CreateExternalAvailabilityServiceHttpClient();
+        }
 
-            string apiKey = "techuser:secretpassWord";
+        private HttpClient CreateExternalAvailabilityServiceHttpClient()
+        {
+            var httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri("https://draliatest.azurewebsites.net/api/availability/");
+
+            string apiUser = Environment.GetEnvironmentVariable("AvailabilityServiceUser");
+            string apiPassword = Environment.GetEnvironmentVariable("AvailabilityServicePassword");
+
+            if (string.IsNullOrEmpty(apiUser)) throw new InvalidOperationException("AvailabilityServiceUser not found in environment variables.");
+            if (string.IsNullOrEmpty(apiPassword)) throw new InvalidOperationException("AvailabilityServicePassword not found in environment variables.");
+
+            string apiKey = apiUser + ":" + apiPassword;
 
             byte[] apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
             string apiKeySecret = Convert.ToBase64String(apiKeyBytes);
-            
-            _httpClient.DefaultRequestHeaders.Authorization =
+
+            httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Basic", apiKeySecret);
+
+            return httpClient;
         }
+
         public async Task<WeeklyAvailabilityDTO> GetWeeklyAvailabilityAsync(int weekNumber, int year)
         {
             try
