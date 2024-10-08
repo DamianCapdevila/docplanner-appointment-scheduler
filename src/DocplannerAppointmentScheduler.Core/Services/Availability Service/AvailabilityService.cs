@@ -23,9 +23,17 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
         private HttpClient CreateExternalAvailabilityServiceHttpClient()
         {
+            string apiKeySecret = CalculateApiKeySecret();
+
             var httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri("https://draliatest.azurewebsites.net/api/availability/");
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", apiKeySecret);
 
+            return httpClient;
+        }
+
+        private static string CalculateApiKeySecret()
+        {
             string apiUser = Environment.GetEnvironmentVariable("AvailabilityServiceUser");
             string apiPassword = Environment.GetEnvironmentVariable("AvailabilityServicePassword");
 
@@ -36,11 +44,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
             byte[] apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
             string apiKeySecret = Convert.ToBase64String(apiKeyBytes);
-
-            httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Basic", apiKeySecret);
-
-            return httpClient;
+            return apiKeySecret;
         }
 
         public async Task<WeeklyAvailabilityDTO> GetWeeklyAvailabilityAsync(int weekNumber, int year)
