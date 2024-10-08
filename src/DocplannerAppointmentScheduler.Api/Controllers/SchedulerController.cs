@@ -68,13 +68,13 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                 }
                 else
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while scheduling an appointment" });
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "An error occurred in the external availability service when scheduling an appointment." });
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error scheduling an appointment at {Start}", request.Start);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while scheduling an appointment" });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while scheduling an appointment" });
             }
         }
     }

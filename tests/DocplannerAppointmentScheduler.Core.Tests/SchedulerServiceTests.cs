@@ -14,15 +14,23 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             _schedulerService = new SchedulerService(_availabilityServiceMock.Object);
         }
 
+
         [Test]
-        public async Task GetAvailableSlots_ShouldFormatDateCorrectly_WhenEnteringDateInWrongFormat()
+        public async Task TakeSlot_ShouldReturnFalse_WhenAppointmentCouldNotBeMadeWithNoErrors()
         {
-            //Arrange
-            
 
-            //Act
+        }
 
-            //Assert
+        [Test]
+        public async Task TakeSlot_ShouldReturnTrue_WhenExternalAvailabilityServiceReturnsOk()
+        {
+
+        }
+
+        [Test]
+        public async Task TakeSlot_ShouldReturnFalse_WhenAvailabilityServiceThrowsException()
+        {
+
         }
     }
 }

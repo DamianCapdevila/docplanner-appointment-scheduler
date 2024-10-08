@@ -123,6 +123,8 @@ namespace DocplannerAppointmentScheduler.Core.Services
                 {
                     throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
                 }
+                
+                //TODO: Return FALSE somewhere... this is what my api logic expects.
                 return true;
             }
             catch (HttpRequestException ex)
