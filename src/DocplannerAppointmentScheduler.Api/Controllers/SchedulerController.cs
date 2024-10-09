@@ -33,7 +33,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var availableSlots = await _schedulerService.GetAvailableSlots(request.WeekNumber, request.Year);
+                var availableSlots = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
                 return Ok(availableSlots);
             }
             catch(HttpRequestException ex)
@@ -60,7 +60,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             try
             {
                 var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
-                var appointmentScheduled = await _schedulerService.ScheduleAppointment(appointmentRequest);
+                var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);
                 
                 if (appointmentScheduled)
                 {

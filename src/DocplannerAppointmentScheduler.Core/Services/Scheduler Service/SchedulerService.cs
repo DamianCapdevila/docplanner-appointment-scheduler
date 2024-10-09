@@ -9,14 +9,14 @@ namespace DocplannerAppointmentScheduler.Core.Services
         {
             _availabilityService = availabilityService;
         }
-        public Task<WeeklyAvailabilityDTO> GetAvailableSlots(int weekNumber, int year)
+        public async Task<WeeklyAvailabilityDTO> GetAvailableSlotsAsync(int weekNumber, int year)
         {
-            return _availabilityService.GetWeeklyAvailabilityAsync(weekNumber, year);
+            return await _availabilityService.GetWeeklyAvailabilityAsync(weekNumber, year);
         }
 
-        public Task<bool> ScheduleAppointment(AppointmentRequestDTO appointmentRequest)
+        public async Task<bool> ScheduleAppointmentAsync(AppointmentRequestDTO appointmentRequest)
         {
-            return _availabilityService.TakeSlotAsync(appointmentRequest);
+            return await _availabilityService.TakeSlotAsync(appointmentRequest);
         }
     }
 }

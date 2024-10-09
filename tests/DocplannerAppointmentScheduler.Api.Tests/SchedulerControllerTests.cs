@@ -54,7 +54,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
 
 
-            _schedulerServiceMock.Setup(s => s.GetAvailableSlots(currentWeek, currentYear))
+            _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(currentWeek, currentYear))
                 .ReturnsAsync(weeklyAvailability);
 
             //Act
@@ -87,7 +87,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
             var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
 
-            _schedulerServiceMock.Setup(s => s.GetAvailableSlots(currentWeek, currentYear))
+            _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(currentWeek, currentYear))
                 .ReturnsAsync(weeklyAvailability);
 
             // Act
@@ -283,7 +283,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
 
 
-            _schedulerServiceMock.Setup(s => s.GetAvailableSlots(request.WeekNumber, request.Year)).ThrowsAsync(new HttpRequestException());
+            _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(request.WeekNumber, request.Year)).ThrowsAsync(new HttpRequestException());
 
             //Act
             var result = await _schedullerController.GetAvailableSlots(request);
@@ -309,7 +309,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
 
 
-            _schedulerServiceMock.Setup(s => s.GetAvailableSlots(request.WeekNumber, request.Year)).ThrowsAsync(new Exception());
+            _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(request.WeekNumber, request.Year)).ThrowsAsync(new Exception());
 
             //Act
             var result = await _schedullerController.GetAvailableSlots(request);
@@ -349,7 +349,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var appointmentRequestDto = new AppointmentRequestDTO();
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointment(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(true);
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(true);
 
             // Act
             var result = await _schedullerController.ScheduleAppointment(request);
@@ -432,7 +432,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
             //It means that appointment could not be made .... IMPROVEMENTS HAVE TO BE MADE IN THE LOGIC DOWN IN THE SERVICE LAYER.
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointment(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(false);
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(false);
 
             // Act
             var result = await _schedullerController.ScheduleAppointment(request);
@@ -467,7 +467,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
             //It means that appointment could not be made .... IMPROVEMENTS HAVE TO BE MADE IN THE LOGIC DOWN IN THE SERVICE LAYER.
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointment(It.IsAny<AppointmentRequestDTO>())).ThrowsAsync(new Exception());
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ThrowsAsync(new Exception());
 
             // Act
             var result = await _schedullerController.ScheduleAppointment(request);
