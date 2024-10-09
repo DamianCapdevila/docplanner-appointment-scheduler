@@ -3,7 +3,7 @@ using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Domain;
 
 
-namespace DocplannerAppointmentScheduler.Core.Mapping
+namespace DocplannerAppointmentScheduler.Core.Mappers
 {
     //Handles mapping between Core and Domain layers.
     public class CoreAndDomainMapper : Profile

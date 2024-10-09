@@ -4,8 +4,6 @@
     {
         private FacilityOccupancy _facilityOccupancy;
         private int _slotDurationMinutes;
-
-        //If we want to change what DateTime format does the business logic use, we will change this field.
         private DateTimeKind _dateTimeKind;
 
         public Facility Facility { get; set; }

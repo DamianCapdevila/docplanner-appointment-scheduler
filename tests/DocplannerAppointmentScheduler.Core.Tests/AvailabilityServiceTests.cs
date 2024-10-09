@@ -20,5 +20,10 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             _mapperMock = new Mock<IMapper>();
             _availabilityService = new AvailabilityService(_mapperMock.Object);
         }
+
+        [Test]
+        public async Task TakeSlotAsync_ShouldReturnFalse_WhenNoSuccess_WithNoExceptions()
+        { 
+        }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using DocplannerAppointmentScheduler.Api.Models;
 using DocplannerAppointmentScheduler.Core.DTOs;
-namespace DocplannerAppointmentScheduler.Api.Mapping
-{ 
+namespace DocplannerAppointmentScheduler.Api.Mappers
+{
     public class ApiAndCoreMapper : Profile
     {
         public ApiAndCoreMapper()

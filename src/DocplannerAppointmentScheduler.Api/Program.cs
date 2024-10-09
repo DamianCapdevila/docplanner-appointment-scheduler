@@ -1,6 +1,6 @@
 using DocplannerAppointmentScheduler.Core.Services;
-using DocplannerAppointmentScheduler.Core.Mapping;
-using DocplannerAppointmentScheduler.Api.Mapping;
+using DocplannerAppointmentScheduler.Core.Mappers;
+using DocplannerAppointmentScheduler.Api.Mappers;
 
 var builder = WebApplication.CreateBuilder(args);
 
