@@ -327,7 +327,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         #region POST scheduleAppointment ENDPOINT TESTS
         #region Data passed to the controller is valid, request is successfully scheduled in the service layer, controller returns 201 Created
         [Test]
-        public async Task ScheduleAppointment_ShouldReturnOkay_WithValidRequest()
+        public async Task ScheduleAppointment_ShouldReturnCreated_WithValidRequest()
         {
             // Arrange
             var request = new AppointmentRequest
