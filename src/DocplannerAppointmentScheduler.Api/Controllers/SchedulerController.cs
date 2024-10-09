@@ -2,9 +2,7 @@
 using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Api.Models;
-using System.Globalization;
 using AutoMapper;
-using DocplannerAppointmentScheduler.Domain;
 
 namespace DocplannerAppointmentScheduler.Api.Controllers
 {
@@ -24,6 +22,11 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         }
 
         [HttpGet("availableSlots")]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WeeklyAvailabilityDTO))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAvailableSlots([FromQuery] AvailableSlotsRequest request)
         {
             try
@@ -36,7 +39,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                 var availableSlots = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
                 return Ok(availableSlots);
             }
-            catch(HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "External service error getting available slots for week {WeekNumber}, year {Year}.", request.WeekNumber, request.Year);
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Error getting weekly availability from the external availability service." });
@@ -44,11 +47,17 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Internal error getting available slots for week {WeekNumber}, year {Year}.", request.WeekNumber, request.Year);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while retrieving available slots."});
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while retrieving available slots." });
             }
         }
 
+
         [HttpPost("scheduleAppointment")]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string[]))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ScheduleAppointment([FromBody] AppointmentRequest request)
         {
             
