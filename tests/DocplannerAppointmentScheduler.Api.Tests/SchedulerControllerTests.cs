@@ -325,7 +325,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
 
         #region POST scheduleAppointment ENDPOINT TESTS
-        #region Data passed to the controller is valid, request is successfully scheduled in the service layer, controller returns OK
+        #region Data passed to the controller is valid, request is successfully scheduled in the service layer, controller returns 201 Created
         [Test]
         public async Task ScheduleAppointment_ShouldReturnOkay_WithValidRequest()
         {
@@ -355,9 +355,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var result = await _schedullerController.ScheduleAppointment(request);
 
             // Assert
-            var okResult = result as OkObjectResult;
-            Assert.IsNotNull(okResult);
-            Assert.That(okResult.StatusCode, Is.EqualTo(200));
+            var CreatedResult = result as ObjectResult;
+            Assert.IsNotNull(CreatedResult);
+            Assert.That(CreatedResult.StatusCode, Is.EqualTo(201));
         }
         #endregion
 
@@ -466,7 +466,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var appointmentRequestDto = new AppointmentRequestDTO();
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
-            //It means that appointment could not be made .... IMPROVEMENTS HAVE TO BE MADE IN THE LOGIC DOWN IN THE SERVICE LAYER.
+            
             _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ThrowsAsync(new Exception());
 
             // Act

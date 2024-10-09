@@ -64,7 +64,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                 
                 if (appointmentScheduled)
                 {
-                    return Ok(new { message = "Appointment scheduled successfully!" });
+                    return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
                 }
                 else
                 {
