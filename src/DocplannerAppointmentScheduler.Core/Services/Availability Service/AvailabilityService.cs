@@ -6,6 +6,7 @@ using System.Text;
 using AutoMapper;
 using DocplannerAppointmentScheduler.Domain;
 using System.Diagnostics;
+using System.Net.Http;
 
 
 namespace DocplannerAppointmentScheduler.Core.Services
@@ -13,19 +14,19 @@ namespace DocplannerAppointmentScheduler.Core.Services
     public class AvailabilityService : IAvailabilityService
     {
         private readonly IMapper _mapper;
-        private HttpClient _httpClient;
+        private IHttpClientFactory _httpClientFactory;
 
-        public AvailabilityService(IMapper mapper)
+        public AvailabilityService(IMapper mapper, IHttpClientFactory httpClientFactory)
         {
             _mapper = mapper;
-            _httpClient = CreateExternalAvailabilityServiceHttpClient();
+            _httpClientFactory = httpClientFactory;
         }
 
         private HttpClient CreateExternalAvailabilityServiceHttpClient()
         {
             string apiKeySecret = CalculateApiKeySecret();
 
-            var httpClient = new HttpClient();
+            var httpClient = _httpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri("https://draliatest.azurewebsites.net/api/availability/");
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", apiKeySecret);
 
@@ -54,7 +55,9 @@ namespace DocplannerAppointmentScheduler.Core.Services
                 DateTime mondayOfSelectedWeek = ISOWeek.ToDateTime(year, weekNumber, DayOfWeek.Monday);
                 string mondayFormatted = mondayOfSelectedWeek.ToString("yyyyMMdd");
 
-                var externalServiceResponse = await _httpClient.GetAsync($"https://draliatest.azurewebsites.net/api/availability/GetWeeklyAvailability/{mondayFormatted}");
+                var httpClient = CreateExternalAvailabilityServiceHttpClient();
+
+                var externalServiceResponse = await httpClient.GetAsync($"https://draliatest.azurewebsites.net/api/availability/GetWeeklyAvailability/{mondayFormatted}");
 
                 if (!externalServiceResponse.IsSuccessStatusCode)
                 {
@@ -129,20 +132,22 @@ namespace DocplannerAppointmentScheduler.Core.Services
         {
             try
             {
+                //Ensure not null of required fields
                 request.Start.ToString("yyyy-MM-ddTHH:mm:ss");
                 request.End.ToString("yyyy-MM-ddTHH:mm:ss");
 
                 var body = JsonConvert.SerializeObject(request, Formatting.Indented);
                 var content = new StringContent(body, Encoding.UTF8, "application/json");
 
-                var externalServiceResponse = await _httpClient.PostAsync("https://draliatest.azurewebsites.net/api/availability/TakeSlot", content);
+                var httpClient = CreateExternalAvailabilityServiceHttpClient();
+
+                var externalServiceResponse = await httpClient.PostAsync("https://draliatest.azurewebsites.net/api/availability/TakeSlot", content);
 
                 if (!externalServiceResponse.IsSuccessStatusCode)
                 {
                     throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
                 }
                 
-                //TODO: Return FALSE somewhere... this is what my api logic expects.
                 return true;
             }
             catch (HttpRequestException ex)

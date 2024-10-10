@@ -32,5 +32,28 @@ namespace DocplannerAppointmentScheduler.Core.Tests.DataBuilders
 
             return weeklyAvailabilityFaker.Generate();
         }
+
+        public AppointmentRequestDTO GenerateFakeAppointmentRequest()
+        {
+            var appointmentFaker = new Faker<AppointmentRequestDTO>()
+                .RuleFor(a => a.Start, f => f.Date.Between(DateTime.Now, DateTime.Now.AddDays(7)))  
+                .RuleFor(a => a.End, (f, a) => a.Start.AddMinutes(10))  
+                .RuleFor(a => a.FacilityId, f => Guid.NewGuid())  
+                .RuleFor(a => a.Comment, f => f.Lorem.Sentence())  
+                .RuleFor(a => a.Patient, f => GenerateFakePatient());  
+
+            return appointmentFaker.Generate();
+        }
+
+        public PatientDTO GenerateFakePatient()
+        {
+            var patientFaker = new Faker<PatientDTO>()
+                .RuleFor(p => p.Name, f => f.Name.FirstName())
+                .RuleFor(p => p.SecondName, f => f.Name.LastName())
+                .RuleFor(p => p.Email, f => f.Internet.Email())
+                .RuleFor(p => p.Phone, f => f.Phone.PhoneNumber());
+
+            return patientFaker.Generate();
+        }
     }
 }

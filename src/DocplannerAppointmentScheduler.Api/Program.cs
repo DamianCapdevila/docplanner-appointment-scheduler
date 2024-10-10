@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAutoMapper(typeof(CoreAndDomainMapper));
 builder.Services.AddAutoMapper(typeof(ApiAndCoreMapper));
 
+// Add an http client factory to services, it is used to instantiate an http client for external availability api calls
+builder.Services.AddHttpClient();
+
 // Add services to the container.
 builder.Services.AddScoped<ISchedulerService, SchedulerService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
