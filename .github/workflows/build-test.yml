@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-test:
 
     runs-on: ubuntu-latest
 
@@ -20,6 +20,10 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
+    - name: Set up environment variables
+      run: |
+        echo "AvailabilityServiceUser=${{ secrets.AVAILABILITY_SERVICE_USER }}" >> $GITHUB_ENV
+        echo "AvailabilityServicePassword=${{ secrets.AVAILABILITY_SERVICE_PASSWORD }}" >> $GITHUB_ENV
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
