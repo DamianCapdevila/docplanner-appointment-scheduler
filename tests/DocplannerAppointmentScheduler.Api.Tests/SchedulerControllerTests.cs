@@ -39,7 +39,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         }
 
         #region GET availableSlots ENDPOINT TESTS
-        #region Data passed to the controller is valid, controller returns OK with correct availability data
+        
         [Test]
         public async Task GetAvailableSlots_ShouldReturnOk_WithAvailableSlots_WhenFreeSlotsAvailable()
         {
@@ -165,9 +165,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             }
             return availableSlots;
         }
-        #endregion
+        
 
-        #region Data passed to the controller is invalid, controller returns BadRequest with meaningful error messages
+        
         [Test]
         public async Task GetAvailableSlots_ShouldReturnBadRequest_WithValidationErrorDetails_WhenSelectedWeekIsInThePast()
         {
@@ -267,9 +267,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.That(modelState.ContainsKey("WeekNumber"), Is.True);
         }
 
-        #endregion
+        
 
-        #region Data passed to the controller is valid, scheduler service fails, controller returns ServiceUnavailable, InternalServerError
+        
         [Test]
         public async Task GetAvailableSlots_ShouldReturnServiceUnavailable_WhenSchedulerService_ThrowsHttpRequestException()
         {
@@ -320,12 +320,12 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
             Assert.That(objectResult.StatusCode, Is.EqualTo((int)HttpStatusCode.InternalServerError));
         }
-        #endregion
+        
         #endregion
 
 
         #region POST scheduleAppointment ENDPOINT TESTS
-        #region Data passed to the controller is valid, request is successfully scheduled in the service layer, controller returns 201 Created
+        
         [Test]
         public async Task ScheduleAppointment_ShouldReturnCreated_WithValidRequest()
         {
@@ -359,9 +359,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.IsNotNull(CreatedResult);
             Assert.That(CreatedResult.StatusCode, Is.EqualTo(201));
         }
-        #endregion
+        
 
-        #region Data passed to the controller is invalid, controller returns BadRequest with meaningfull error messages
+        
         public async Task ScheduleAppointment_ShouldReturnBadRequest_WithInvalidRequest()
         {
             // Arrange
@@ -406,9 +406,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.That(modelState.ContainsKey("PatientRequest.Phone"), Is.True);
         }
         #endregion
-        #endregion
+        
 
-        #region Data passed to the controller is valid, scheduler service fails, controller returns ServiceUnavailable, InternalServerError
+        
         [Test]
         public async Task ScheduleAppointment_ShouldReturnServiceUnavailable_WhenSchedulerService_ReturnsFalse()
         {
@@ -478,7 +478,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
             Assert.That(objectResult.StatusCode, Is.EqualTo((int)HttpStatusCode.InternalServerError));
         }
-        #endregion
+        
         #endregion
     }
 }
