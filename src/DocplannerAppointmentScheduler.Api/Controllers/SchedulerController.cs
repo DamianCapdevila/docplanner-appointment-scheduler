@@ -54,7 +54,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
 
         [HttpPost("scheduleAppointment")]
         [Produces("application/json")]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string[]))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string[]))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -73,7 +73,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                 
                 if (appointmentScheduled)
                 {
-                    return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
+                    return StatusCode(StatusCodes.Status200OK, new { message = "Appointment scheduled successfully!" });
                 }
                 else
                 {

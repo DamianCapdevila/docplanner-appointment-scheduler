@@ -327,7 +327,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         #region POST scheduleAppointment ENDPOINT TESTS
         
         [Test]
-        public async Task ScheduleAppointment_ShouldReturnCreated_WithValidRequest()
+        public async Task ScheduleAppointment_ShouldReturnOk_WithValidRequest()
         {
             // Arrange
             var request = new AppointmentRequest
@@ -355,9 +355,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var result = await _schedullerController.ScheduleAppointment(request);
 
             // Assert
-            var CreatedResult = result as ObjectResult;
-            Assert.IsNotNull(CreatedResult);
-            Assert.That(CreatedResult.StatusCode, Is.EqualTo(201));
+            var okResult = result as ObjectResult;
+            Assert.IsNotNull(okResult);
+            Assert.That(okResult.StatusCode, Is.EqualTo(200));
         }
         
 
