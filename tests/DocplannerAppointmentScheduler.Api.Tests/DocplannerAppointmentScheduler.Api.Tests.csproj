@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\DocplannerAppointmentScheduler.TestUtilities\DocplannerAppointmentScheduler.TestUtilities.csproj" />
     <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Api\DocplannerAppointmentScheduler.Api.csproj" />
     <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Core\DocplannerAppointmentScheduler.Core.csproj" />
   </ItemGroup>

@@ -61,7 +61,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 if (!externalServiceResponse.IsSuccessStatusCode)
                 {
-                    throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
+                    return new WeeklyAvailabilityDTO();
                 }
 
                 var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
@@ -128,7 +128,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
         }
 
-        public async Task<bool> TakeSlotAsync(AppointmentRequestDTO request)
+        public async Task<HttpResponseMessage> TakeSlotAsync(AppointmentRequestDTO request)
         {
             try
             {
@@ -143,17 +143,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 var externalServiceResponse = await httpClient.PostAsync("https://draliatest.azurewebsites.net/api/availability/TakeSlot", content);
 
-                if (!externalServiceResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"Error fetching weekly availability. Status code: {externalServiceResponse.StatusCode}");
-                }
-                
-                return true;
-            }
-            catch (HttpRequestException ex)
-            {
-                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
-                throw;
+                return externalServiceResponse;
             }
             catch (Exception ex)
             {

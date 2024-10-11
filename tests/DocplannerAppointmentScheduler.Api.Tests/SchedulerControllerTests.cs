@@ -7,16 +7,10 @@ using DocplannerAppointmentScheduler.Core.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.AspNetCore.Mvc.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Routing;
-using System.ComponentModel.DataAnnotations;
-using DocplannerAppointmentScheduler.Api.Validators;
 using System.Net;
+using Bogus;
+using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
+using DocplannerAppointmentScheduler.TestUtilities.Enums;
 
 
 namespace DocplannerAppointmentScheduler.Api.Tests
@@ -327,7 +321,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         #region POST scheduleAppointment ENDPOINT TESTS
         
         [Test]
-        public async Task ScheduleAppointment_ShouldReturnCreated_WithValidRequest_WhenExternalServiceReturnsOK()
+        public async Task ScheduleAppointment_ShouldReturnCreated_WithValidRequest_WhenExternalServiceReturnsSuccess()
         {
             // Arrange
             var request = new AppointmentRequest
@@ -349,7 +343,12 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var appointmentRequestDto = new AppointmentRequestDTO();
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(true);
+
+            var fakeDataGenerator = new FakeDataGenerator();
+            var successResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(StatusCodeRange.Success);
+
+
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(successResponseMessage);
 
             // Act
             var result = await _schedullerController.ScheduleAppointment(request);
@@ -410,7 +409,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
         
         [Test]
-        public async Task ScheduleAppointment_ShouldReturnServiceUnavailable_WhenSchedulerService_ReturnsFalse()
+        public async Task ScheduleAppointment_ShouldReturnServiceUnavailable_WhenSchedulerService_DoesNotReturnSuccess()
         {
             // Arrange
             var request = new AppointmentRequest
@@ -431,8 +430,13 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var appointmentRequestDto = new AppointmentRequestDTO();
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
-            //It means that appointment could not be made .... IMPROVEMENTS HAVE TO BE MADE IN THE LOGIC DOWN IN THE SERVICE LAYER.
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(false);
+            
+            var fakeDataGenerator = new FakeDataGenerator();
+            var unsuccessfullResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(StatusCodeRange.AllButSuccess);
+
+
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>()))
+                            .ReturnsAsync(unsuccessfullResponseMessage);
 
             // Act
             var result = await _schedullerController.ScheduleAppointment(request);
@@ -444,6 +448,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.That(objectResult.StatusCode, Is.EqualTo((int)HttpStatusCode.ServiceUnavailable));
         }
 
+        
         [Test]
         public async Task ScheduleAppointment_ShouldReturnInternalServerError_WhenSchedulerService_ThrowsException()
         {

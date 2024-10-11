@@ -1,18 +1,9 @@
 ﻿using AutoMapper;
-using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Core.Services;
-using DocplannerAppointmentScheduler.Core.Tests.DataBuilders;
+using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
 using Moq;
-using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DocplannerAppointmentScheduler.Core.Tests
 {
@@ -33,13 +24,36 @@ namespace DocplannerAppointmentScheduler.Core.Tests
 
         #region TAKE SLOT
         [Test]
-        public async Task TakeSlotAsync_ShouldReturnTrue_When_ExternalServiceResponse_IsSuccessStatusCode()
+        public async Task TakeSlotAsync_ShouldReturnShouldReturnSameResponse_Than_ExternalAvailabilityService()
+        {
+            //Arrange
+            var fakeDataGenerator = new FakeDataGenerator();
+            var randomResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse();
+
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When("*").Respond(req => randomResponseMessage);
+            
+
+            var client = mockHttp.ToHttpClient();
+
+            _httpClientFactoryMock.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                          .Returns(client);
+
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+
+            //Act
+            var result = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
+
+            //Assert
+            Assert.That(result.StatusCode, Is.EqualTo(randomResponseMessage.StatusCode));
+        }
+
+        [Test]
+        public void TakeSlotAsync_ShouldThrowException_When_ExternalAvailabilityService_ThrowsException()
         {
             //Arrange
             var mockHttp = new MockHttpMessageHandler();
-            mockHttp.When("*")
-                    .Respond("application/json", "{'availability' : 'Availability Info'}");
-            
+            mockHttp.When("*").Throw(new Exception());
 
             var client = mockHttp.ToHttpClient();
 
@@ -49,12 +63,11 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var fakeDataGenerator = new FakeDataGenerator();
             var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
 
-            //Act
-            var slotTaken = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
-
-            //Assert
-            Assert.That(slotTaken, Is.True);
+            //Act && Assert
+            Assert.ThrowsAsync<Exception>(async () =>
+                await _availabilityService.TakeSlotAsync(fakeAppointmentRequest));
         }
+
         #endregion
 
     }

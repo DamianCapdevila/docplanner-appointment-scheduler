@@ -69,16 +69,13 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             try
             {
                 var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
-                var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);
+                var response = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);
                 
-                if (appointmentScheduled)
+                if (response.IsSuccessStatusCode)
                 {
                     return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
                 }
-                else
-                {
-                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "An error occurred in the external availability service when scheduling an appointment." });
-                }
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "An error occurred in the external availability service when scheduling an appointment." });
             }
             catch (Exception ex)
             {

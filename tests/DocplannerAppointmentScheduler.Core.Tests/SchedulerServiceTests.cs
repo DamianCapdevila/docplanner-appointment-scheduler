@@ -1,7 +1,8 @@
 using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Core.Services;
-using DocplannerAppointmentScheduler.Core.Tests.DataBuilders;
+using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
 using Moq;
+using System.Net;
 namespace DocplannerAppointmentScheduler.Core.Tests
 {
     public class SchedulerServiceTests
@@ -68,7 +69,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         public async Task GetAvailableSlots_ShouldCall_AvailabilityService_TakeSlotAsync()
         {
             //Arrange
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(true);
+            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
 
             //Act
             var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>());
@@ -77,29 +78,20 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             _availabilityServiceMock.Verify(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>()), Times.Once);
         }
         [Test]
-        public async Task ScheduleAppointmentAsync_ShouldReturnFalse_WhenAvailabilityServiceReturnsFalse()
+        public async Task ScheduleAppointmentAsync_ShouldReturnSameResponse_Than_AvailabilityServiceResponse()
         {
             //Arrange
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(false);
+            var fakeDataGenerator = new FakeDataGenerator(); 
+            var randomResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse();
+
+
+            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(randomResponseMessage);
 
             //Act
             var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(new AppointmentRequestDTO());
 
             //Assert
-            Assert.That(appointmentScheduled, Is.False);
-        }
-
-        [Test]
-        public async Task ScheduleAppointmentAsync_ShouldReturnTrue_WhenAvailabilityServiceReturnsOk()
-        {
-            //Arrange
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(true);
-
-            //Act
-            var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(new AppointmentRequestDTO());
-
-            //Assert
-            Assert.That(appointmentScheduled, Is.True);
+            Assert.That(appointmentScheduled, Is.EqualTo(randomResponseMessage));
         }
 
         [Test]
