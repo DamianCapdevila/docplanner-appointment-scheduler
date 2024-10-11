@@ -357,7 +357,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             // Assert
             var okResult = result as ObjectResult;
             Assert.IsNotNull(okResult);
-            Assert.That(okResult.StatusCode, Is.EqualTo(200));
+            Assert.That(okResult.StatusCode, Is.EqualTo((int)HttpStatusCode.OK));
         }
         
 
@@ -375,7 +375,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             // Assert
             var badRequestResult = result as BadRequestObjectResult;
             Assert.IsNotNull(badRequestResult);
-            Assert.That(badRequestResult.StatusCode, Is.EqualTo(400));
+            Assert.That(badRequestResult.StatusCode, Is.EqualTo((int)HttpStatusCode.BadRequest));
 
             var modelState = badRequestResult.Value as SerializableError;
             Assert.IsNotNull(modelState);
