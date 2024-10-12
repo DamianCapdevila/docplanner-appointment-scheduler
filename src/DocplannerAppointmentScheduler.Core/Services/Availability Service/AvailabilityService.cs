@@ -58,17 +58,21 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 var httpClient = CreateExternalAvailabilityServiceHttpClient();
 
-                var response = await httpClient.GetAsync($"GetWeeklyAvailability/{mondayFormatted}");
+                var OccupancyResponse = await httpClient.GetAsync($"GetWeeklyAvailability/{mondayFormatted}");
 
-                var processedResponse = ProcessExternalServiceResponse(response);
-                if (processedResponse.StatusCode != HttpStatusCode.OK)
+                var filteredOccupancyResponse = FilterExternalServiceResponse(OccupancyResponse);
+                
+                if (filteredOccupancyResponse.StatusCode != HttpStatusCode.OK)
                 {
-                    return processedResponse;
+                    return new HttpResponseMessage(filteredOccupancyResponse.StatusCode)
+                    {
+                        Content = new StringContent("An error occurred in the external availability service while processing the request.")
+                    };
                 }
 
-                var weeklyAvailability = await DetermineWeeklyAvailability(processedResponse);
-                var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability,Formatting.Indented);
+                var weeklyAvailability = await DetermineWeeklyAvailability(filteredOccupancyResponse);
 
+                var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability, Formatting.Indented);
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(weeklyAvailabilityJson, Encoding.UTF8, "application/json")
@@ -83,51 +87,40 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
         }
 
-        private async Task<WeeklyAvailabilityDTO> DetermineWeeklyAvailability(HttpResponseMessage externalServiceResponse)
+        private async Task<WeeklyAvailabilityDTO> DetermineWeeklyAvailability(HttpResponseMessage occupancyResponse)
         {
 
             try
             {
-                var responseContent = await externalServiceResponse.Content.ReadAsStringAsync();
-                var facilityOccupancy = JsonConvert.DeserializeObject<FacilityOccupancyDTO>(responseContent);
+                FacilityOccupancyDTO? facilityOccupancy = await DeserializeFacilityOccupancy(occupancyResponse);
                 return CalculateWeeklyAvailability(facilityOccupancy);
             }
-            catch (JsonException ex)
-            {
-                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
+            catch (Exception)
+            { 
                 throw;
             }
         }
 
+        private static async Task<FacilityOccupancyDTO?> DeserializeFacilityOccupancy(HttpResponseMessage externalServiceResponse)
+        {
+            var responseContent = await externalServiceResponse.Content.ReadAsStringAsync();
+            var facilityOccupancyDTO = JsonConvert.DeserializeObject<FacilityOccupancyDTO>(responseContent);
+            return facilityOccupancyDTO;
+        }
+
         private WeeklyAvailabilityDTO CalculateWeeklyAvailability(FacilityOccupancyDTO? facilityOccupancy)
         {
-            if (facilityOccupancy == null)
-            {
-                throw new ArgumentNullException(nameof(facilityOccupancy));
-            }
-
             try
             {
                 FacilityOccupancy occupancy = _mapper.Map<FacilityOccupancy>(facilityOccupancy);
+                
                 var weeklyAvailability = new WeeklyAvailability(occupancy);
-
 
                 var weeklyAvailabilityDto = _mapper.Map<WeeklyAvailabilityDTO>(weeklyAvailability);
                 return weeklyAvailabilityDto;
             }
-            catch (AutoMapperMappingException ex)
+            catch (Exception)
             {
-                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
                 throw;
             }
         }
@@ -145,7 +138,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
                 var httpClient = CreateExternalAvailabilityServiceHttpClient();
 
                 var response = await httpClient.PostAsync("TakeSlot", content);
-                return ProcessExternalServiceResponse(response);
+                return FilterExternalServiceResponse(response);
             }
             catch (Exception)
             {
@@ -156,7 +149,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
         }
 
-        private static HttpResponseMessage ProcessExternalServiceResponse(HttpResponseMessage externalServiceResponse)
+        private static HttpResponseMessage FilterExternalServiceResponse(HttpResponseMessage externalServiceResponse)
         {
             if (externalServiceResponse.IsSuccessStatusCode)
             {

@@ -2,24 +2,24 @@
 {
     public class WeeklyAvailability
     {
-        private FacilityOccupancy _facilityOccupancy;
+        private IFacilityOccupancy _facilityOccupancy;
         private int _slotDurationMinutes;
         private DateTimeKind _dateTimeKind;
 
         public Facility Facility { get; set; }
         public List<DaySchedule> DaySchedules { get; set; }
 
-        public WeeklyAvailability(FacilityOccupancy facilityOccupancy)
+        public WeeklyAvailability(IFacilityOccupancy facilityOccupancy)
         {
             _facilityOccupancy = facilityOccupancy;
             _slotDurationMinutes = facilityOccupancy.SlotDurationMinutes;
             _dateTimeKind = DateTimeKind.Unspecified;
             Facility = facilityOccupancy.Facility;
             DaySchedules = new List<DaySchedule>();
-            CalculateWeeklyAvailability();
+            CalculateAvailability();
         }
 
-        private void CalculateWeeklyAvailability()
+        private void CalculateAvailability()
         {
             DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Monday, _facilityOccupancy.Monday));
             DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Tuesday, _facilityOccupancy.Tuesday));

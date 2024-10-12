@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the occupancy data for a facility.
     /// </summary>
-    public class FacilityOccupancy
+    public class FacilityOccupancy : IFacilityOccupancy
     {
         public Facility Facility { get; set; }
         public int SlotDurationMinutes { get; set; }
