@@ -268,15 +268,14 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.IsNotNull(createdResult);
             Assert.That(createdResult.StatusCode, Is.EqualTo((int)HttpStatusCode.Created));
         }
-        
 
-        
+
+        [Test]
         public async Task ScheduleAppointment_ShouldReturnBadRequest_WithInvalidRequest()
         {
             // Arrange
             AddModelStateErrors();
-
-            var request = new AppointmentRequest(); // Invalid request with missing data -> Not relevant here, as the bad request is triggered by invalid model.
+            var request = new AppointmentRequest(); 
 
             // Act
             var result = await _schedullerController.ScheduleAppointment(request);

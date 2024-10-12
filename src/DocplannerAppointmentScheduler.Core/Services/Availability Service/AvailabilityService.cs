@@ -58,17 +58,15 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 var httpClient = CreateExternalAvailabilityServiceHttpClient();
 
-                var externalServiceResponse = await httpClient.GetAsync($"https://draliatest.azurewebsites.net/api/availability/GetWeeklyAvailability/{mondayFormatted}");
+                var response = await httpClient.GetAsync($"GetWeeklyAvailability/{mondayFormatted}");
 
-                if (!externalServiceResponse.IsSuccessStatusCode)
+                var processedResponse = ProcessExternalServiceResponse(response);
+                if (processedResponse.StatusCode != HttpStatusCode.OK)
                 {
-                    return new HttpResponseMessage(externalServiceResponse.StatusCode)
-                    {
-                        Content = new StringContent("An error occurred while fetching the availability. Please try again later.", Encoding.UTF8, "application/json")
-                    };
+                    return processedResponse;
                 }
 
-                var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
+                var weeklyAvailability = await DetermineWeeklyAvailability(processedResponse);
                 var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability,Formatting.Indented);
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
@@ -76,7 +74,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
                     Content = new StringContent(weeklyAvailabilityJson, Encoding.UTF8, "application/json")
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError)
                 {
@@ -146,35 +144,8 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 var httpClient = CreateExternalAvailabilityServiceHttpClient();
 
-                var externalServiceResponse = await httpClient.PostAsync("TakeSlot", content);
-
-                if (externalServiceResponse.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    return externalServiceResponse;
-                }
-
-                else if(externalServiceResponse.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    return new HttpResponseMessage(HttpStatusCode.Unauthorized)
-                    {
-                        Content = new StringContent("Authorization is not sufficient to fetch weekly availability from external service. Please check credentials.", Encoding.UTF8, "application/json")
-                    };
-                }
-
-                else if (externalServiceResponse.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return externalServiceResponse;
-                }
-
-                else if (!externalServiceResponse.IsSuccessStatusCode)
-                {
-                    return new HttpResponseMessage(externalServiceResponse.StatusCode)
-                    {
-                        Content = new StringContent("An error occurred while fetching the availability. Please try again later.", Encoding.UTF8, "application/json")
-                    };
-                }
-
-                return externalServiceResponse;
+                var response = await httpClient.PostAsync("TakeSlot", content);
+                return ProcessExternalServiceResponse(response);
             }
             catch (Exception)
             {
@@ -183,6 +154,36 @@ namespace DocplannerAppointmentScheduler.Core.Services
                     Content = new StringContent("An error occurred in the external availability service while processing the request.")
                 };
             }
+        }
+
+        private static HttpResponseMessage ProcessExternalServiceResponse(HttpResponseMessage externalServiceResponse)
+        {
+            if (externalServiceResponse.IsSuccessStatusCode)
+            {
+                return externalServiceResponse;
+            }
+            else if (externalServiceResponse.StatusCode == HttpStatusCode.BadRequest)
+            {
+                return externalServiceResponse;
+            }
+
+            else if (externalServiceResponse.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
+                {
+                    Content = new StringContent("Authorization is not sufficient to utilize external availability service. Please check credentials.", Encoding.UTF8, "application/json")
+                };
+            }
+
+            else if (externalServiceResponse.StatusCode == HttpStatusCode.NotFound)
+            {
+                return externalServiceResponse;
+            }
+
+            return new HttpResponseMessage(externalServiceResponse.StatusCode)
+            {
+                Content = new StringContent("An error occurred while using external availability service. Please try again later.", Encoding.UTF8, "application/json")
+            };
         }
     }
 }

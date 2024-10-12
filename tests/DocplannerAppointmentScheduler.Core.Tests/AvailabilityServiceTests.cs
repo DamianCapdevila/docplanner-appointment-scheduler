@@ -1,9 +1,13 @@
 ﻿using AutoMapper;
+using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Core.Services;
+using DocplannerAppointmentScheduler.Domain;
 using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
+using System.Globalization;
 using System.Net;
 
 namespace DocplannerAppointmentScheduler.Core.Tests
@@ -140,6 +144,142 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         #endregion
 
         #region GET WEEKLY AVAILABILITY
+        [Test]
+        public async Task GetWeeklyAvailabilityAsync_ShouldReturnOk_When_ExternalAvailabilityService_ReturnsOkWithValidData()
+        {
+            //Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+
+            
+            var fakeDataGenerator = new FakeDataGenerator();
+            var fakeOccupancyData = fakeDataGenerator.GenerateFakeFacilityOccupancy(slotDurationMinutes: 10, busySlotsPerDay: 1);
+
+            var fakeFacilityOccupancy = new FacilityOccupancy();  
+            var fakeWeeklyAvailability = new WeeklyAvailability(fakeFacilityOccupancy);
+            var fakeWeeklyAvailabilityDto = new WeeklyAvailabilityDTO();  
+
+            var fakeOccupancyJson = JsonConvert.SerializeObject(fakeOccupancyData);
+
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When("*").Respond("application/json", fakeOccupancyJson);
+
+
+            var client = mockHttp.ToHttpClient();
+
+            _httpClientFactoryMock.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                          .Returns(client);
+
+            
+            _mapperMock.Setup(m => m.Map<FacilityOccupancy>(It.IsAny<FacilityOccupancyDTO>())).Returns(fakeFacilityOccupancy);
+            _mapperMock.Setup(m => m.Map<WeeklyAvailabilityDTO>(It.IsAny<WeeklyAvailability>())).Returns(fakeWeeklyAvailabilityDto);
+
+            //Act
+            var result = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
+
+            //Assert
+            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
+
+        [Test]
+        public async Task GetWeeklyAvailabilityAsync_ShouldReturnInternalServerError_When_ExternalAvailabilityService_ThrowsException()
+        {
+            //Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When("*").Throw(new Exception());
+
+            var client = mockHttp.ToHttpClient();
+
+            _httpClientFactoryMock.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                          .Returns(client);
+
+            var fakeDataGenerator = new FakeDataGenerator();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+
+            //Act 
+            var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
+
+            //Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+        }
+
+        [Test]
+        public async Task GetWeeklyAvailabilityAsync_ShouldReturnBadRequest_When_ExternalAvailabilityService_ReturnsBadRequest()
+        {
+            //Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When("*").Respond(HttpStatusCode.BadRequest);
+
+            var client = mockHttp.ToHttpClient();
+
+            _httpClientFactoryMock.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                          .Returns(client);
+
+            var fakeDataGenerator = new FakeDataGenerator();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+
+            //Act 
+            var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
+
+            //Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        }
+
+        [Test]
+        public async Task GetWeeklyAvailabilityAsync_ShouldReturnUnauthorized_When_ExternalAvailabilityService_ReturnsUnauthorized()
+        {
+            //Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When("*").Respond(HttpStatusCode.Unauthorized);
+
+            var client = mockHttp.ToHttpClient();
+
+            _httpClientFactoryMock.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                          .Returns(client);
+
+            var fakeDataGenerator = new FakeDataGenerator();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+
+            //Act 
+            var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
+
+            //Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        }
+
+        [Test]
+        public async Task GetWeeklyAvailabilityAsync_ShouldReturnNotFound_When_ExternalAvailabilityService_ReturnsNotFound()
+        {
+            //Arrange
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When("*").Respond(HttpStatusCode.NotFound);
+
+            var client = mockHttp.ToHttpClient();
+
+            _httpClientFactoryMock.Setup(factory => factory.CreateClient(It.IsAny<string>()))
+                          .Returns(client);
+
+            var fakeDataGenerator = new FakeDataGenerator();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+
+            //Act 
+            var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
+
+            //Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        }
         #endregion
 
     }

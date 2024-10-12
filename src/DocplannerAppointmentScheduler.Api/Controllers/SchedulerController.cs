@@ -45,20 +45,19 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
 
                     return Ok(weeklyAvailability);
                 }
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Error getting weekly availability from the external availability service." });
-                }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "External service error getting available slots for week {WeekNumber}, year {Year}.", request.WeekNumber, request.Year);
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Error getting weekly availability from the external availability service." });
+                _logger.LogWarning($"Failed to get weekly availability. External availability service returned {response.StatusCode}.");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    message = $"External service error getting available slots for week {request.WeekNumber}, year {request.Year}.",
+                    reason = $"The external availability service returned {response.StatusCode}."
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Internal error getting available slots for week {WeekNumber}, year {Year}.", request.WeekNumber, request.Year);
+                _logger.LogError(ex, $"Internal error getting available slots for week {request.WeekNumber}, year {request.Year}.");
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while retrieving available slots." });
             }
         }
-
 
         [HttpPost("scheduleAppointment")]
         [Produces("application/json")]
@@ -68,27 +67,30 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ScheduleAppointment([FromBody] AppointmentRequest request)
         {
-            
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
                 var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
-                var response = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);
-                
+                var response = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);               
                 if (response.IsSuccessStatusCode)
                 {
                     return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
                 }
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = $"An error occurred in the external availability service when scheduling an appointment.",
-                                                                  reason = $"The external availability service returned {response.StatusCode}."});
+                
+                _logger.LogWarning($"Failed to get schedule appointment. External availability service returned {response.StatusCode}.");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                        message = $"An error occurred in the external availability service when scheduling an appointment.",
+                        reason = $"The external availability service returned {response.StatusCode}."
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error scheduling an appointment at {Start}", request.Start);
+                _logger.LogError(ex, $"Error scheduling an appointment at {request.Start}");
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while scheduling an appointment" });
             }
         }

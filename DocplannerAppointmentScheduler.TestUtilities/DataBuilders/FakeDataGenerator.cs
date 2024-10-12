@@ -36,6 +36,41 @@ namespace DocplannerAppointmentScheduler.TestUtilities.DataBuilders
             return weeklyAvailabilityFaker.Generate();
         }
 
+        public FacilityOccupancyDTO GenerateFakeFacilityOccupancy(int slotDurationMinutes, int busySlotsPerDay)
+        {
+            var facilityFaker = new Faker<FacilityDTO>()
+                .RuleFor(f => f.FacilityId, f => Guid.NewGuid())
+                .RuleFor(f => f.Name, f => f.Company.CompanyName())
+                .RuleFor(f => f.Address, f => f.Address.FullAddress());
+
+            var busySlotFaker = new Faker<BusySlotDTO>()
+                .RuleFor(b => b.Start, f => f.Date.Between(DateTime.Now, DateTime.Now.AddDays(7)))
+                .RuleFor(b => b.End, (f, b) => b.Start.AddMinutes(slotDurationMinutes));
+
+            var workPeriodFaker = new Faker<WorkPeriodDTO>()
+                .RuleFor(w => w.StartHour, f => f.Random.Int(8, 10))  
+                .RuleFor(w => w.EndHour, f => f.Random.Int(16, 18))    
+                .RuleFor(w => w.LunchStartHour, f => f.Random.Int(12, 13))  
+                .RuleFor(w => w.LunchEndHour, (f, w) => w.LunchStartHour + 1);  
+
+            var dayOccupancyFaker = new Faker<DayOccupancyDTO>()
+                .RuleFor(d => d.WorkPeriod, f => workPeriodFaker.Generate())
+                .RuleFor(d => d.BusySlots, f => busySlotFaker.Generate(busySlotsPerDay));
+
+            var facilityOccupancyFaker = new Faker<FacilityOccupancyDTO>()
+                .RuleFor(o => o.Facility, f => facilityFaker.Generate())
+                .RuleFor(o => o.SlotDurationMinutes, slotDurationMinutes)
+                .RuleFor(o => o.Monday, f => dayOccupancyFaker.Generate())
+                .RuleFor(o => o.Tuesday, f => dayOccupancyFaker.Generate())
+                .RuleFor(o => o.Wednesday, f => dayOccupancyFaker.Generate())
+                .RuleFor(o => o.Thursday, f => dayOccupancyFaker.Generate())
+                .RuleFor(o => o.Friday, f => dayOccupancyFaker.Generate())
+                .RuleFor(o => o.Saturday, f => dayOccupancyFaker.Generate())
+                .RuleFor(o => o.Sunday, f => dayOccupancyFaker.Generate());
+
+            return facilityOccupancyFaker.Generate();
+        }
+
         public AppointmentRequestDTO GenerateFakeAppointmentRequest()
         {
             var appointmentFaker = new Faker<AppointmentRequestDTO>()
