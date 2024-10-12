@@ -9,7 +9,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
         {
             _availabilityService = availabilityService;
         }
-        public async Task<WeeklyAvailabilityDTO> GetAvailableSlotsAsync(int weekNumber, int year)
+        public async Task<HttpResponseMessage> GetAvailableSlotsAsync(int weekNumber, int year)
         {
             return await _availabilityService.GetWeeklyAvailabilityAsync(weekNumber, year);
         }

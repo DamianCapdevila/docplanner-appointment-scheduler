@@ -2,6 +2,9 @@
 using DocplannerAppointmentScheduler.Core.DTOs;
 using System.Net;
 using DocplannerAppointmentScheduler.TestUtilities.Enums;
+using System.Text;
+using DocplannerAppointmentScheduler.Domain;
+using Newtonsoft.Json;
 
 namespace DocplannerAppointmentScheduler.TestUtilities.DataBuilders
 {
@@ -56,7 +59,7 @@ namespace DocplannerAppointmentScheduler.TestUtilities.DataBuilders
             return patientFaker.Generate();
         }
 
-        public HttpResponseMessage GenerateFakeHttpResponse(StatusCodeRange range = StatusCodeRange.All)
+        public HttpResponseMessage GenerateFakeHttpResponse(object? content = null, StatusCodeRange range = StatusCodeRange.All)
         {
             var allStatusCodes = Enum.GetValues(typeof(HttpStatusCode)).Cast<HttpStatusCode>().ToList();
             var filteredStatusCodes = new List<HttpStatusCode>();
@@ -101,8 +104,17 @@ namespace DocplannerAppointmentScheduler.TestUtilities.DataBuilders
             }
 
             var responseFaker = new Faker<HttpResponseMessage>()
-                .RuleFor(r => r.StatusCode, f => f.PickRandom(filteredStatusCodes))
-                .RuleFor(r => r.Content, f => new StringContent(f.Lorem.Sentence()));
+                .RuleFor(r => r.StatusCode, f => f.PickRandom(filteredStatusCodes));
+
+            if (content != null)
+            {
+                var serializedContent = JsonConvert.SerializeObject(content);
+                responseFaker.RuleFor(r => r.Content, _ => new StringContent(serializedContent, Encoding.UTF8, "application/json"));
+            }
+            else
+            {
+                responseFaker.RuleFor(r => r.Content, f => new StringContent(f.Lorem.Sentence()));
+            }
 
             return responseFaker.Generate();
         }

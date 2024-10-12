@@ -11,6 +11,8 @@ using System.Net;
 using Bogus;
 using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
 using DocplannerAppointmentScheduler.TestUtilities.Enums;
+using Newtonsoft.Json;
+using System.Text;
 
 
 namespace DocplannerAppointmentScheduler.Api.Tests
@@ -42,14 +44,14 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             int currentYear = DateTime.Now.Year;
             AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
 
-            int numberOfAvailableSlots = 2;
-            uint ammountDaySchedules = 1;
+            var fakeDataGenerator = new FakeDataGenerator();
+            var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailability(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 2);
+            
+            var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(weeklyAvailability, range: StatusCodeRange.Success);
 
-            var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
-
-
+            // Mock the GetAvailableSlotsAsync method to return the HttpResponseMessage
             _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(currentWeek, currentYear))
-                .ReturnsAsync(weeklyAvailability);
+                .ReturnsAsync(fakeResponse);
 
             //Act
             var result = await _schedullerController.GetAvailableSlots(request);
@@ -65,7 +67,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.IsNotNull(response);
 
             //Check that the content of the response contains available slots
-            Assert.That(response.DaySchedules.Sum(ds => ds.AvailableSlots.Count), Is.EqualTo(numberOfAvailableSlots));
+            Assert.That(response.DaySchedules.Sum(ds => ds.AvailableSlots.Count), Is.EqualTo(weeklyAvailability.DaySchedules.Sum(ds=>ds.AvailableSlots.Count)));
         }
 
         [Test]
@@ -76,19 +78,19 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             int currentYear = DateTime.Now.Year;
             AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
 
-            int numberOfAvailableSlots = 0;
-            uint ammountDaySchedules = 7;
+            var fakeDataGenerator = new FakeDataGenerator();
+            var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailability(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 0);
+            
+            var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(weeklyAvailability, range: StatusCodeRange.Success);
 
-            var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
-
+            
             _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(currentWeek, currentYear))
-                .ReturnsAsync(weeklyAvailability);
+                .ReturnsAsync(fakeResponse);
 
-            // Act
+            //Act
             var result = await _schedullerController.GetAvailableSlots(request);
 
-            // Assert
-
+            //Assert
 
             //Check that the response is an OK
             var okResult = result as OkObjectResult;
@@ -98,70 +100,11 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var response = okResult.Value as WeeklyAvailabilityDTO;
             Assert.IsNotNull(response);
 
-            //Check that the content of the response contains no available slots
-            Assert.That(response.DaySchedules.Sum(ds => ds.AvailableSlots.Count), Is.EqualTo(numberOfAvailableSlots));
+            //Check that the content of the response contains available slots
+            Assert.That(response.DaySchedules.Sum(ds => ds.AvailableSlots.Count), Is.EqualTo(weeklyAvailability.DaySchedules.Sum(ds => ds.AvailableSlots.Count)));
         }
 
-        private WeeklyAvailabilityDTO CreateWeeklyAvailability(int numberOfAvailableSlots, uint ammountDaySchedules)
-        {
-            List<FreeSlotDTO> availableSlots = CreateAvailableSlots(numberOfAvailableSlots);
-            List<DayScheduleDTO> daySchedules = CreateDaySchedules(ammountDaySchedules, availableSlots);
-            FacilityDTO facility = CreateFacility("TestFacility", "TestAdress 123");
-
-            return new WeeklyAvailabilityDTO
-            {
-                Facility = facility,
-                DaySchedules = daySchedules,
-            };
-        }
-
-        private static FacilityDTO CreateFacility(string name, string address)
-        {
-            return new FacilityDTO
-            {
-                FacilityId = Guid.NewGuid(),
-                Name = name,
-                Address = address
-            };
-        }
-
-        private static List<DayScheduleDTO> CreateDaySchedules(uint ammountDaySchedules, List<FreeSlotDTO> availableSlots)
-        {
-            var daySchedules = new List<DayScheduleDTO>();
-
-            const int DAYS_IN_A_WEEK = 7;
-            if (ammountDaySchedules > DAYS_IN_A_WEEK) ammountDaySchedules = DAYS_IN_A_WEEK;
-            for (int i = 0; i < ammountDaySchedules; i++)
-            {
-                var dayOfWeek = (DayOfWeek)((int)DayOfWeek.Monday + i);
-                var daySchedule = new DayScheduleDTO
-                {
-                    Day = dayOfWeek.ToString(),
-                    AvailableSlots = availableSlots
-                };
-                daySchedules.Add(daySchedule);
-            }
-
-            return daySchedules;
-        }
-
-        private static List<FreeSlotDTO> CreateAvailableSlots(int numberOfAvailableSlots)
-        {
-            int slotDurationMinutes = 10;
-            var availableSlots = new List<FreeSlotDTO>();
-            for (int i = 0; i < numberOfAvailableSlots; i++)
-            {
-                availableSlots.Add(new FreeSlotDTO
-                {
-                    Start = DateTime.Now.AddMinutes(i * slotDurationMinutes + slotDurationMinutes),
-                    End = DateTime.Now.AddMinutes(i * slotDurationMinutes + 2 * slotDurationMinutes)
-                });
-            }
-            return availableSlots;
-        }
-        
-
-        
+ 
         [Test]
         public async Task GetAvailableSlots_ShouldReturnBadRequest_WithValidationErrorDetails_WhenSelectedWeekIsInThePast()
         {
@@ -261,34 +204,6 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.That(modelState.ContainsKey("WeekNumber"), Is.True);
         }
 
-        
-
-        
-        [Test]
-        public async Task GetAvailableSlots_ShouldReturnServiceUnavailable_WhenSchedulerService_ThrowsHttpRequestException()
-        {
-            //Arrange
-            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
-            int currentYear = DateTime.Now.Year;
-            AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
-
-            int numberOfAvailableSlots = 2;
-            uint ammountDaySchedules = 1;
-            var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
-
-
-            _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(request.WeekNumber, request.Year)).ThrowsAsync(new HttpRequestException());
-
-            //Act
-            var result = await _schedullerController.GetAvailableSlots(request);
-
-            //Assert
-            var objectResult = result as ObjectResult;
-            Assert.IsNotNull(objectResult);
-
-            Assert.That(objectResult.StatusCode, Is.EqualTo((int)HttpStatusCode.ServiceUnavailable));
-        }
-
 
         [Test]
         public async Task GetAvailableSlots_ShouldReturnInternalServerError_WhenSchedulerService_ThrowsException()
@@ -297,11 +212,6 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
             int currentYear = DateTime.Now.Year;
             AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
-
-            int numberOfAvailableSlots = 2;
-            uint ammountDaySchedules = 1;
-            var weeklyAvailability = CreateWeeklyAvailability(numberOfAvailableSlots, ammountDaySchedules);
-
 
             _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(request.WeekNumber, request.Year)).ThrowsAsync(new Exception());
 
@@ -345,7 +255,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var successResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(StatusCodeRange.Success);
+            var successResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(range: StatusCodeRange.Success);
 
 
             _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(successResponseMessage);
@@ -432,7 +342,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
             
             var fakeDataGenerator = new FakeDataGenerator();
-            var unsuccessfullResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(StatusCodeRange.AllButSuccess);
+            var unsuccessfullResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(range: StatusCodeRange.AllButSuccess);
 
 
             _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>()))

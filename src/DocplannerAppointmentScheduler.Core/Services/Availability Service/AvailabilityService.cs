@@ -7,6 +7,7 @@ using AutoMapper;
 using DocplannerAppointmentScheduler.Domain;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Net;
 
 
 namespace DocplannerAppointmentScheduler.Core.Services
@@ -48,7 +49,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             return apiKeySecret;
         }
 
-        public async Task<WeeklyAvailabilityDTO> GetWeeklyAvailabilityAsync(int weekNumber, int year)
+        public async Task<HttpResponseMessage> GetWeeklyAvailabilityAsync(int weekNumber, int year)
         {
             try
             {
@@ -61,21 +62,26 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 if (!externalServiceResponse.IsSuccessStatusCode)
                 {
-                    return new WeeklyAvailabilityDTO();
+                    return new HttpResponseMessage(externalServiceResponse.StatusCode)
+                    {
+                        Content = new StringContent("An error occurred while fetching the availability. Please try again later.", Encoding.UTF8, "application/json")
+                    };
                 }
 
                 var weeklyAvailability = await DetermineWeeklyAvailability(externalServiceResponse);
-                return weeklyAvailability;
-            }
-            catch (HttpRequestException ex)
-            {
-                Debug.WriteLine(ex.Message + "Details:" + Environment.NewLine + ex.StackTrace);
-                throw;
+                var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability,Formatting.Indented);
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(weeklyAvailabilityJson, Encoding.UTF8, "application/json")
+                };
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
-                throw;
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("An error occurred in the external availability service while processing the request.")
+                };
             }
         }
 
@@ -132,7 +138,6 @@ namespace DocplannerAppointmentScheduler.Core.Services
         {
             try
             {
-                //Ensure not null of required fields
                 request.Start.ToString("yyyy-MM-ddTHH:mm:ss");
                 request.End.ToString("yyyy-MM-ddTHH:mm:ss");
 
@@ -141,14 +146,42 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 var httpClient = CreateExternalAvailabilityServiceHttpClient();
 
-                var externalServiceResponse = await httpClient.PostAsync("https://draliatest.azurewebsites.net/api/availability/TakeSlot", content);
+                var externalServiceResponse = await httpClient.PostAsync("TakeSlot", content);
+
+                if (externalServiceResponse.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    return externalServiceResponse;
+                }
+
+                else if(externalServiceResponse.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.Unauthorized)
+                    {
+                        Content = new StringContent("Authorization is not sufficient to fetch weekly availability from external service. Please check credentials.", Encoding.UTF8, "application/json")
+                    };
+                }
+
+                else if (externalServiceResponse.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return externalServiceResponse;
+                }
+
+                else if (!externalServiceResponse.IsSuccessStatusCode)
+                {
+                    return new HttpResponseMessage(externalServiceResponse.StatusCode)
+                    {
+                        Content = new StringContent("An error occurred while fetching the availability. Please try again later.", Encoding.UTF8, "application/json")
+                    };
+                }
 
                 return externalServiceResponse;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Debug.WriteLine($"An unexpected error ocurred: {ex.Message} + Details:" + Environment.NewLine + ex.StackTrace);
-                throw;
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("An error occurred in the external availability service while processing the request.")
+                };
             }
         }
     }

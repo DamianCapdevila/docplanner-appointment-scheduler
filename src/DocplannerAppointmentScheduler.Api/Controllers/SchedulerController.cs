@@ -3,6 +3,7 @@ using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Api.Models;
 using AutoMapper;
+using Newtonsoft.Json;
 
 namespace DocplannerAppointmentScheduler.Api.Controllers
 {
@@ -21,7 +22,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("availableSlots")]
+        [HttpGet("response")]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WeeklyAvailabilityDTO))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -36,9 +37,16 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var availableSlots = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
-                return Ok(availableSlots);
-            }
+                var response = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var weeklyAvailability = JsonConvert.DeserializeObject<WeeklyAvailabilityDTO>(content);
+
+                    return Ok(weeklyAvailability);
+                }
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Error getting weekly availability from the external availability service." });
+                }
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "External service error getting available slots for week {WeekNumber}, year {Year}.", request.WeekNumber, request.Year);
@@ -75,7 +83,8 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                 {
                     return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
                 }
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "An error occurred in the external availability service when scheduling an appointment." });
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = $"An error occurred in the external availability service when scheduling an appointment.",
+                                                                  reason = $"The external availability service returned {response.StatusCode}."});
             }
             catch (Exception ex)
             {
