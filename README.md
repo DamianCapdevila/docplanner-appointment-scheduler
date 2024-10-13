@@ -121,11 +121,10 @@ Before running the application, ensure that the following preconditions are met:
 ## 👆🏻🖱 Using the application
 
 After successfully running the application, you will see something like this in your browser:
-![Swagger UI Overview](./images/SwaggerUI-Overview.png)
-
+![Swagger UI Overview](images/SwaggerUI-Overview.PNG))
 **To see the availability of a given week, please use this endpoint:**
 
-![Get Weekly Availability](./images/SwaggerUI-AvailableSlots.png)
+![Get Weekly Availability](/images/SwaggerUI-AvailableSlots.PNG)
 
 **Make sure you pass correct parameters for the WeekNumber and Year:** 
 - WeekNumber should be a value between current calendar week and 53.
@@ -178,7 +177,7 @@ You can then use the available slots values to schedule an appointment. See belo
 
 **To schedule an appointment, please use this endpoint:**
 
-![Schedule Appointment](./images/SwaggerUI-ScheduleAppointment.png)
+![Schedule Appointment](./images/SwaggerUI-ScheduleAppointment.PNG)
 
 Make sure the request body is correct. See an example below:
 
