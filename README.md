@@ -56,14 +56,16 @@ Before running the application, ensure that the following preconditions are met:
      export AvailabilityServiceUser="your_username"
      export AvailabilityServicePassword="your_password"
      ```
-   **These environment variables are mandatory for the service to function.** If they are not set, the API will return a `400 Bad Request` response with an error message indicating which environment variable is missing. 
+   **These environment variables are mandatory for the service to function.** If they are not set, the API will return a `503 Service Unavailable` response with an error message indicating which environment variable is missing. 
 
    For example, the response might look like this:
 
         ```json
         {
-            "message": "Configuration error: AvailabilityServiceUser is missing. Please ensure all required environment variables are set."
-        }
+           "message": "External service error getting available slots for week 42, year 2024.",
+           "reason": "The external availability service returned Unauthorized.",
+           "details": "The external availability service returned the follorwing content: Configuration error: AvailabilityServiceUser environment variable is missing.. Please ensure all required environment variables are set."
+        }   
         ```
 
 
