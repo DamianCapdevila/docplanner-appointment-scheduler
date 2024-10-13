@@ -156,7 +156,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var fakeDataGenerator = new FakeDataGenerator();
             var fakeOccupancyData = fakeDataGenerator.GenerateFakeFacilityOccupancyDTO(slotDurationMinutes: 10, busySlotsPerDay: 1, mondayOfThisWeek);
 
-            var fakeFacilityOccupancy = new FacilityOccupancy();  
+            var fakeFacilityOccupancy = new FacilityOccupancy() { Facility = new Facility() {Name = "Name", Address = "Address" } };  
             var fakeWeeklyAvailability = new WeeklyAvailability(fakeFacilityOccupancy);
             var fakeWeeklyAvailabilityDto = new WeeklyAvailabilityDTO();  
 

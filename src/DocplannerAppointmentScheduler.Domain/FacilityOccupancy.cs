@@ -5,15 +5,15 @@
     /// </summary>
     public class FacilityOccupancy : IFacilityOccupancy
     {
-        public Facility Facility { get; set; }
+        public required Facility Facility { get; set; }
         public int SlotDurationMinutes { get; set; }
-        public DayOccupancy Monday { get; set; }
-        public DayOccupancy Tuesday { get; set; }
-        public DayOccupancy Wednesday { get; set; }
-        public DayOccupancy Thursday { get; set; }
-        public DayOccupancy Friday { get; set; }
-        public DayOccupancy Saturday { get; set; }
-        public DayOccupancy Sunday { get; set; }
+        public  DayOccupancy? Monday { get; set; }
+        public  DayOccupancy? Tuesday { get; set; }
+        public  DayOccupancy? Wednesday { get; set; }
+        public  DayOccupancy? Thursday { get; set; }
+        public  DayOccupancy? Friday { get; set; }
+        public  DayOccupancy? Saturday { get; set; }
+        public  DayOccupancy? Sunday { get; set; }
     }
 
     /// <summary>
@@ -22,8 +22,8 @@
     public class Facility
     {
         public Guid FacilityId { get; set; }
-        public string Name { get; set; }
-        public string Address { get; set; }
+        public required string Name { get; set; }
+        public required string Address { get; set; }
     }
 
     /// <summary>
@@ -31,8 +31,8 @@
     /// </summary>
     public class DayOccupancy
     {
-        public WorkPeriod WorkPeriod { get; set; }
-        public List<BusySlot> BusySlots { get; set; }
+        public required WorkPeriod WorkPeriod { get; set; }
+        public required List<BusySlot> BusySlots { get; set; }
     }
 
     /// <summary>
