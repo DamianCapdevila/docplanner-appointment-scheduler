@@ -22,7 +22,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("response")]
+        [HttpGet("availableSlots")]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WeeklyAvailabilityDTO))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
