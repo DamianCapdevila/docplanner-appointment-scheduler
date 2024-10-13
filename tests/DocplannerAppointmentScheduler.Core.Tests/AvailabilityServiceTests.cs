@@ -44,7 +44,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             _httpClientFactoryMock.Setup(factory => factory.CreateClient(It.IsAny<string>()))
                           .Returns(client);
 
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act
             var result = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
@@ -66,7 +66,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
@@ -88,7 +88,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
@@ -110,7 +110,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
@@ -132,7 +132,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
@@ -150,10 +150,11 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             //Arrange
             int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
             int currentYear = DateTime.Now.Year;
+            DateTime mondayOfThisWeek = ISOWeek.ToDateTime(currentYear, currentWeek, DayOfWeek.Monday);
 
-            
+
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeOccupancyData = fakeDataGenerator.GenerateFakeFacilityOccupancy(slotDurationMinutes: 10, busySlotsPerDay: 1);
+            var fakeOccupancyData = fakeDataGenerator.GenerateFakeFacilityOccupancyDTO(slotDurationMinutes: 10, busySlotsPerDay: 1, mondayOfThisWeek);
 
             var fakeFacilityOccupancy = new FacilityOccupancy();  
             var fakeWeeklyAvailability = new WeeklyAvailability(fakeFacilityOccupancy);
@@ -197,7 +198,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
@@ -222,7 +223,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
@@ -247,7 +248,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
@@ -272,7 +273,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
                           .Returns(client);
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequest();
+            var fakeAppointmentRequest = fakeDataGenerator.GenerateFakeAppointmentRequestDTO();
 
             //Act 
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);

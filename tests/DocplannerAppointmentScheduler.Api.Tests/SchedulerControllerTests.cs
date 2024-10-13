@@ -45,7 +45,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailability(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 2);
+            var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailabilityDTO(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 2);
             
             var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(weeklyAvailability, range: StatusCodeRange.Success);
 
@@ -79,7 +79,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             AvailableSlotsRequest request = new AvailableSlotsRequest { WeekNumber = currentWeek, Year = currentYear };
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailability(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 0);
+            var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailabilityDTO(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 0);
             
             var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(weeklyAvailability, range: StatusCodeRange.Success);
 

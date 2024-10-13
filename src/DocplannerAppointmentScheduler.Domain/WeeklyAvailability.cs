@@ -3,55 +3,68 @@
     public class WeeklyAvailability
     {
         private IFacilityOccupancy _facilityOccupancy;
-        private int _slotDurationMinutes;
         private DateTimeKind _dateTimeKind;
-
-        public Facility Facility { get; set; }
-        public List<DaySchedule> DaySchedules { get; set; }
+        private List<DaySchedule> _daySchedules;
+        private Facility _facility;
+        private int _slotDurationMinutes;
 
         public WeeklyAvailability(IFacilityOccupancy facilityOccupancy)
         {
             _facilityOccupancy = facilityOccupancy;
             _slotDurationMinutes = facilityOccupancy.SlotDurationMinutes;
             _dateTimeKind = DateTimeKind.Unspecified;
-            Facility = facilityOccupancy.Facility;
-            DaySchedules = new List<DaySchedule>();
-            CalculateAvailability();
+            _facility = facilityOccupancy.Facility;
+            _daySchedules = new List<DaySchedule>();
         }
 
-        private void CalculateAvailability()
+        public Facility Facility => _facility;
+        public IReadOnlyList<DaySchedule> DaySchedules => _daySchedules;
+        public WeeklyAvailability GetAvailability(DateTime startOfTheWeek) => CalculateAvailability(startOfTheWeek);
+        
+
+        private WeeklyAvailability CalculateAvailability(DateTime startOfTheWeek)
         {
-            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Monday, _facilityOccupancy.Monday));
-            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Tuesday, _facilityOccupancy.Tuesday));
-            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Wednesday, _facilityOccupancy.Wednesday));
-            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Thursday, _facilityOccupancy.Thursday));
-            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Friday, _facilityOccupancy.Friday));
-            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Saturday, _facilityOccupancy.Saturday)); 
-            DaySchedules.Add(CalculateDayAvailability(DayOfWeek.Sunday, _facilityOccupancy.Sunday)); 
+            _daySchedules.Clear();
+            foreach (DayOfWeek day in Enum.GetValues(typeof(DayOfWeek)))
+            {
+                DayOccupancy? dayOccupancy = day switch
+                {
+                    DayOfWeek.Monday => _facilityOccupancy.Monday,
+                    DayOfWeek.Tuesday => _facilityOccupancy.Tuesday,
+                    DayOfWeek.Wednesday => _facilityOccupancy.Wednesday,
+                    DayOfWeek.Thursday => _facilityOccupancy.Thursday,
+                    DayOfWeek.Friday => _facilityOccupancy.Friday,
+                    DayOfWeek.Saturday => _facilityOccupancy.Saturday,
+                    DayOfWeek.Sunday => _facilityOccupancy.Sunday,
+                    _ => null
+                };
+                var daysOffset = (int)day - (int)DayOfWeek.Monday;
+                if (daysOffset < 0) daysOffset += 7; //This happens on Sunday.
+
+                var dateOfTheDay = startOfTheWeek.AddDays(daysOffset);
+                _daySchedules.Add(DailyAvailability(day, dayOccupancy, dateOfTheDay));   
+            }
+            return this;
         }
 
-        private DaySchedule CalculateDayAvailability(DayOfWeek day, DayOccupancy dayOccupancy)
+        private DaySchedule DailyAvailability(DayOfWeek day, DayOccupancy? dayOccupancy, DateTime dateOfTheDay)
         {
             if (dayOccupancy == null || dayOccupancy.WorkPeriod == null)
             {
-                return new DaySchedule
-                {
-                    Day = day.ToString(),
-                    AvailableSlots = new List<FreeSlot>()
-                };
+                return NoMedicalAttentionProvided(day);
             }
 
             var workPeriod = dayOccupancy.WorkPeriod;
             var availableSlots = new List<FreeSlot>();
 
-            var startTime = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.StartHour), _dateTimeKind);
-            var endTime = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.EndHour), _dateTimeKind);
-            var lunchStart = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.LunchStartHour), _dateTimeKind);
-            var lunchEnd = DateTime.SpecifyKind(DateTime.Today.AddHours(workPeriod.LunchEndHour), _dateTimeKind);
+            var startTime = DateTime.SpecifyKind(dateOfTheDay.AddHours(workPeriod.StartHour), _dateTimeKind);
+            var endTime = DateTime.SpecifyKind(dateOfTheDay.AddHours(workPeriod.EndHour), _dateTimeKind);
+            var lunchStart = DateTime.SpecifyKind(dateOfTheDay.AddHours(workPeriod.LunchStartHour), _dateTimeKind);
+            var lunchEnd = DateTime.SpecifyKind(dateOfTheDay.AddHours(workPeriod.LunchEndHour), _dateTimeKind);
 
             while (startTime < endTime)
             {
-                if (startTime >= lunchStart && startTime < lunchEnd)
+                if (IsLunchTime(startTime, lunchStart, lunchEnd))
                 {
                     startTime = lunchEnd;
                     continue;
@@ -59,17 +72,9 @@
 
                 var slotEnd = DateTime.SpecifyKind(startTime.AddMinutes(_slotDurationMinutes), _dateTimeKind);
 
-                bool isBusy = dayOccupancy.BusySlots.Any(busySlot =>
-                    (startTime >= busySlot.Start && startTime < busySlot.End) ||
-                    (slotEnd > busySlot.Start && slotEnd <= busySlot.End));
-
-                if (!isBusy)
+                if (!IsSlotBusy(startTime, slotEnd, dayOccupancy.BusySlots))
                 {
-                    availableSlots.Add(new FreeSlot
-                    {
-                        Start = startTime,
-                        End = slotEnd
-                    });
+                    AddFreeSlot(availableSlots, startTime, slotEnd);
                 }
 
                 startTime = slotEnd;
@@ -82,6 +87,35 @@
             };
         }
 
+        private static void AddFreeSlot(List<FreeSlot> availableSlots, DateTime startTime, DateTime slotEnd)
+        {
+            availableSlots.Add(new FreeSlot
+            {
+                Start = startTime,
+                End = slotEnd
+            });
+        }
+
+        private bool IsSlotBusy(DateTime slotStart, DateTime slotEnd, List<BusySlot> busySlots)
+        {
+            return busySlots.Any(busySlot =>
+                (slotStart >= busySlot.Start && slotStart < busySlot.End) ||
+                (slotEnd > busySlot.Start && slotEnd <= busySlot.End));
+        }
+
+        private static DaySchedule NoMedicalAttentionProvided(DayOfWeek day)
+        {
+            return new DaySchedule
+            {
+                Day = day.ToString(),
+                AvailableSlots = new List<FreeSlot>()
+            };
+        }
+
+        private bool IsLunchTime(DateTime currentTime, DateTime lunchStart, DateTime lunchEnd)
+        {
+            return currentTime >= lunchStart && currentTime < lunchEnd;
+        }
     }
 
     public class DaySchedule

@@ -43,7 +43,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             int ammountFreeSlotsPerDay = 10;
 
             var fakeDataGenerator = new FakeDataGenerator();
-            var fakeWeeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailability(slotDurationMinutes, ammountFreeSlotsPerDay);
+            var fakeWeeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailabilityDTO(slotDurationMinutes, ammountFreeSlotsPerDay);
 
             var serializedAvailability = JsonConvert.SerializeObject(fakeWeeklyAvailability);
             var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(serializedAvailability);

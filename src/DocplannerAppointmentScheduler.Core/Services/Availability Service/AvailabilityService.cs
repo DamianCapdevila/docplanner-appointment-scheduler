@@ -70,7 +70,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
                     };
                 }
 
-                var weeklyAvailability = await DetermineWeeklyAvailability(filteredOccupancyResponse);
+                var weeklyAvailability = await DetermineWeeklyAvailability(filteredOccupancyResponse, mondayOfSelectedWeek);
 
                 var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability, Formatting.Indented);
                 return new HttpResponseMessage(HttpStatusCode.OK)
@@ -87,13 +87,13 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
         }
 
-        private async Task<WeeklyAvailabilityDTO> DetermineWeeklyAvailability(HttpResponseMessage occupancyResponse)
+        private async Task<WeeklyAvailabilityDTO> DetermineWeeklyAvailability(HttpResponseMessage occupancyResponse, DateTime startOfTheWeek)
         {
 
             try
             {
                 FacilityOccupancyDTO? facilityOccupancy = await DeserializeFacilityOccupancy(occupancyResponse);
-                return CalculateWeeklyAvailability(facilityOccupancy);
+                return CalculateWeeklyAvailability(facilityOccupancy, startOfTheWeek);
             }
             catch (Exception)
             { 
@@ -108,13 +108,13 @@ namespace DocplannerAppointmentScheduler.Core.Services
             return facilityOccupancyDTO;
         }
 
-        private WeeklyAvailabilityDTO CalculateWeeklyAvailability(FacilityOccupancyDTO? facilityOccupancy)
+        private WeeklyAvailabilityDTO CalculateWeeklyAvailability(FacilityOccupancyDTO? facilityOccupancy, DateTime startOfTheWeek)
         {
             try
             {
                 FacilityOccupancy occupancy = _mapper.Map<FacilityOccupancy>(facilityOccupancy);
                 
-                var weeklyAvailability = new WeeklyAvailability(occupancy);
+                var weeklyAvailability = new WeeklyAvailability(occupancy).GetAvailability(startOfTheWeek);
 
                 var weeklyAvailabilityDto = _mapper.Map<WeeklyAvailabilityDTO>(weeklyAvailability);
                 return weeklyAvailabilityDto;
