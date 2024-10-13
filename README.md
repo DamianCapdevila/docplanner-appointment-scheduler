@@ -118,6 +118,11 @@ Before running the application, ensure that the following preconditions are met:
   
 - If the availability service is down, you will receive a `503 Service Unavailable` error when attempting to schedule or retrieve appointments. Ensure that the external service is available before proceeding.
 
+## 👆🏻🖱 Using the application
+
+After successfully running the application, you will see something like this in your browser:
+![Swagger UI Overview](./images/SwaggerUI-Overview.png)
+
 ## 👨🏻‍🚀 Technical Overview
 
 
