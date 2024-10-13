@@ -1,5 +1,6 @@
 ﻿using DocplannerAppointmentScheduler.Api.Validators;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace DocplannerAppointmentScheduler.Api.Models
 {

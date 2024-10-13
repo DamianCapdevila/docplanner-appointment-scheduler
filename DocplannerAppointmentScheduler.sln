@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocplannerAppointmentSchedu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocplannerAppointmentScheduler.Domain.Tests", "DocplannerAppointmentScheduler.Domain.Tests\DocplannerAppointmentScheduler.Domain.Tests.csproj", "{A40476FE-16DB-4C33-8EB6-6C5D45D0C5E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocplannerAppointmentScheduler.IntegrationTests", "DocplannerAppointmentScheduler.IntegrationTests\DocplannerAppointmentScheduler.IntegrationTests.csproj", "{9B6A0007-68BA-4317-B666-B636D68E8EC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{A40476FE-16DB-4C33-8EB6-6C5D45D0C5E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A40476FE-16DB-4C33-8EB6-6C5D45D0C5E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A40476FE-16DB-4C33-8EB6-6C5D45D0C5E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B6A0007-68BA-4317-B666-B636D68E8EC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B6A0007-68BA-4317-B666-B636D68E8EC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B6A0007-68BA-4317-B666-B636D68E8EC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B6A0007-68BA-4317-B666-B636D68E8EC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,6 +78,7 @@ Global
 		{92281BCE-76C0-49C2-A3EB-41E4FDD75943} = {76CBB67D-8257-4B46-BCDC-8384D041629A}
 		{0EE518CA-3573-4A87-A52C-D3C42423C603} = {76CBB67D-8257-4B46-BCDC-8384D041629A}
 		{A40476FE-16DB-4C33-8EB6-6C5D45D0C5E6} = {76CBB67D-8257-4B46-BCDC-8384D041629A}
+		{9B6A0007-68BA-4317-B666-B636D68E8EC3} = {76CBB67D-8257-4B46-BCDC-8384D041629A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0BBC693A-7BAD-48B6-86DD-694E5BC02BDA}
