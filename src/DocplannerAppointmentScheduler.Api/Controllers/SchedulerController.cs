@@ -49,7 +49,8 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new
                 {
                     message = $"External service error getting available slots for week {request.WeekNumber}, year {request.Year}.",
-                    reason = $"The external availability service returned {response.StatusCode}."
+                    reason = $"The external availability service returned {response.StatusCode}.",
+                    details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
                 });
             }
             catch (Exception ex)
@@ -85,7 +86,8 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new
                 {
                         message = $"An error occurred in the external availability service when scheduling an appointment.",
-                        reason = $"The external availability service returned {response.StatusCode}."
+                        reason = $"The external availability service returned {response.StatusCode}.",
+                        details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
                 });
             }
             catch (Exception ex)
