@@ -120,8 +120,8 @@
 
     public class DaySchedule
     {
-        public string Day { get; set; }
-        public List<FreeSlot> AvailableSlots { get; set; }
+        public required string Day { get; set; }
+        public required List<FreeSlot> AvailableSlots { get; set; }
     }
 
     public class FreeSlot
