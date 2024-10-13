@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="NUnit" Version="3.14.0" />
@@ -19,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DocplannerAppointmentScheduler.TestUtilities\DocplannerAppointmentScheduler.TestUtilities.csproj" />
-    <ProjectReference Include="..\src\DocplannerAppointmentScheduler.Domain\DocplannerAppointmentScheduler.Domain.csproj" />
+    <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Api\DocplannerAppointmentScheduler.Api.csproj" />
+    <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Core\DocplannerAppointmentScheduler.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
