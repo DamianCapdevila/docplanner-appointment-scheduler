@@ -123,13 +123,90 @@ Before running the application, ensure that the following preconditions are met:
 After successfully running the application, you will see something like this in your browser:
 ![Swagger UI Overview](./images/SwaggerUI-Overview.png)
 
-## 👨🏻‍🚀 Technical Overview
+**To see the availability of a given week, please use this endpoint:**
+
+![Get Weekly Availability](./images/SwaggerUI-AvailableSlots.png)
+
+**Make sure you pass correct parameters for the WeekNumber and Year:** 
+- WeekNumber should be a value between current calendar week and 53.
+
+- Year should be a value between current calendar year and the maximum of an int value *(hopefully technology will be much better than this by then :P).*
 
 
- ### API Layer Overview
 
+*Calling this endpoint, if everything is correct, will return a response with the following structure:*
 
- ### Core Layer Overview
+```json
+{
+  "facility": {
+    "facilityId": "bea5bc63-7db5-466e-8a5c-398a9c94c380",
+    "name": "Las Palmeras",
+    "address": "Plaza de la independencia 36, 38006 Santa Cruz de Tenerife"
+  },
+  "daySchedules": [
+    {
+      "day": "Sunday",
+      "availableSlots": []
+    },
+    {
+      "day": "Monday",
+      "availableSlots": [
+        {
+          "start": "2024-10-14T09:40:00",
+          "end": "2024-10-14T09:50:00"
+        },
+        {
+          "start": "2024-10-14T09:50:00",
+          "end": "2024-10-14T10:00:00"
+        },
+        {
+          "start": "2024-10-14T10:00:00",
+          "end": "2024-10-14T10:10:00"
+        },
+        {
+          "start": "2024-10-14T10:10:00",
+          "end": "2024-10-14T10:20:00"
+        },
+        {
+          "start": "2024-10-14T10:30:00",
+          "end": "2024-10-14T10:40:00"
+        },
+    }
+}
+```
+You can then use the available slots values to schedule an appointment. See below how.
 
+**To schedule an appointment, please use this endpoint:**
 
- ### Domain Overview
+![Schedule Appointment](./images/SwaggerUI-ScheduleAppointment.png)
+
+Make sure the request body is correct. See an example below:
+
+```json
+{
+  "start": "2024-10-14T16:57:54",
+  "end": "2024-10-14T17:57:54",
+  "facilityId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "comment": "Hire Damian Capdevila :P",
+  "patientRequest": {
+    "name": "string",
+    "secondName": "string",
+    "email": "user@example.com",
+    "phone": "+344657568698"
+  }
+}
+```
+- start and end should be formatted like: yyyy-MM-ddTHH:mm:ss
+- start and end should be in the future respect to the current   time.
+- phone number should be valid.
+
+There are more requirements, the api will return bad request and tell you what´s wrong in case you miss one :).
+
+If the appointment is successfully created, the api will return
+a 201 Created Error with the following object:
+```json
+{
+  "message": "Appointment scheduled successfully!"
+}
+```
+
