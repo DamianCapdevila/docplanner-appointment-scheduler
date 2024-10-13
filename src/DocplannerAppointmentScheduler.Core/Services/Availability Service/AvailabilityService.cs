@@ -8,6 +8,7 @@ using DocplannerAppointmentScheduler.Domain;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Net;
+using DocplannerAppointmentScheduler.Core.Exceptions;
 
 
 namespace DocplannerAppointmentScheduler.Core.Services
@@ -39,8 +40,11 @@ namespace DocplannerAppointmentScheduler.Core.Services
             string apiUser = Environment.GetEnvironmentVariable("AvailabilityServiceUser");
             string apiPassword = Environment.GetEnvironmentVariable("AvailabilityServicePassword");
 
-            if (string.IsNullOrEmpty(apiUser)) throw new InvalidOperationException("AvailabilityServiceUser not found in environment variables.");
-            if (string.IsNullOrEmpty(apiPassword)) throw new InvalidOperationException("AvailabilityServicePassword not found in environment variables.");
+            if (string.IsNullOrEmpty(apiUser))
+                throw new MissingEnvironmentVariableException("AvailabilityServiceUser is missing.");
+            if (string.IsNullOrEmpty(apiPassword))
+                throw new MissingEnvironmentVariableException("AvailabilityServicePassword is missing.");
+
 
             string apiKey = apiUser + ":" + apiPassword;
 
@@ -59,7 +63,6 @@ namespace DocplannerAppointmentScheduler.Core.Services
                 var httpClient = CreateExternalAvailabilityServiceHttpClient();
 
                 var OccupancyResponse = await httpClient.GetAsync($"GetWeeklyAvailability/{mondayFormatted}");
-
                 var filteredOccupancyResponse = FilterExternalServiceResponse(OccupancyResponse);
                 
                 if (filteredOccupancyResponse.StatusCode != HttpStatusCode.OK)
@@ -76,6 +79,13 @@ namespace DocplannerAppointmentScheduler.Core.Services
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(weeklyAvailabilityJson, Encoding.UTF8, "application/json")
+                };
+            }
+            catch (MissingEnvironmentVariableException ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent($"Configuration error: {ex.Message}. Please ensure all required environment variables are set.")
                 };
             }
             catch (Exception)
@@ -139,6 +149,13 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 var response = await httpClient.PostAsync("TakeSlot", content);
                 return FilterExternalServiceResponse(response);
+            }
+            catch (MissingEnvironmentVariableException ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent($"Configuration error: {ex.Message}. Please ensure all required environment variables are set.")
+                };
             }
             catch (Exception)
             {
