@@ -73,37 +73,125 @@ namespace DocplannerAppointmentScheduler.TestUtilities.DataBuilders
 
         public FacilityOccupancy GenerateFakeFacilityOccupancy(int slotDurationMinutes, int busySlotsPerDay, DateTime startOfTheWeek)
         {
+            var workPeriod = new WorkPeriod
+            {
+                StartHour = 8,
+                EndHour = 17,
+                LunchStartHour = 12,
+                LunchEndHour = 13
+            };
+
+            int workDayLengthMinutes = ((workPeriod.EndHour - workPeriod.StartHour) - (workPeriod.LunchEndHour - workPeriod.LunchStartHour)) * 60;
+            int totalSlotsPerDay = workDayLengthMinutes / slotDurationMinutes;
+
+            if (busySlotsPerDay > totalSlotsPerDay)
+            {
+                busySlotsPerDay = totalSlotsPerDay;
+            }
+
             var facilityFaker = new Faker<Facility>()
                 .RuleFor(f => f.FacilityId, f => Guid.NewGuid())
                 .RuleFor(f => f.Name, f => f.Company.CompanyName())
                 .RuleFor(f => f.Address, f => f.Address.FullAddress());
 
-            var busySlotFaker = new Faker<BusySlot>()
-                .RuleFor(b => b.Start, f => f.Date.Between(startOfTheWeek, startOfTheWeek.AddDays(7)))
-                .RuleFor(b => b.End, (f, b) => b.Start.AddMinutes(slotDurationMinutes));
+            // Create busy slots for each day of the week
+            var busySlotsByDay = new Dictionary<DayOfWeek, List<BusySlot>>();
 
-            var workPeriodFaker = new Faker<WorkPeriod>()
-                .RuleFor(w => w.StartHour, f => f.Random.Int(8, 10))
-                .RuleFor(w => w.EndHour, f => f.Random.Int(16, 18))
-                .RuleFor(w => w.LunchStartHour, f => f.Random.Int(12, 13))
-                .RuleFor(w => w.LunchEndHour, (f, w) => w.LunchStartHour + 1);
+            foreach (DayOfWeek day in Enum.GetValues(typeof(DayOfWeek)))
+            {
+                var busySlots = GenerateBusySlots(busySlotsPerDay, slotDurationMinutes, startOfTheWeek, workPeriod, day);
+                busySlotsByDay[day] = busySlots;
+            }
 
-            var dayOccupancyFaker = new Faker<DayOccupancy>()
-                .RuleFor(d => d.WorkPeriod, f => workPeriodFaker.Generate())
-                .RuleFor(d => d.BusySlots, f => busySlotFaker.Generate(busySlotsPerDay));
-
+            // Create DayOccupancy for each day using the correct busy slots
             var facilityOccupancyFaker = new Faker<FacilityOccupancy>()
                 .RuleFor(o => o.Facility, f => facilityFaker.Generate())
                 .RuleFor(o => o.SlotDurationMinutes, slotDurationMinutes)
-                .RuleFor(o => o.Monday, f => dayOccupancyFaker.Generate())
-                .RuleFor(o => o.Tuesday, f => dayOccupancyFaker.Generate())
-                .RuleFor(o => o.Wednesday, f => dayOccupancyFaker.Generate())
-                .RuleFor(o => o.Thursday, f => dayOccupancyFaker.Generate())
-                .RuleFor(o => o.Friday, f => dayOccupancyFaker.Generate())
-                .RuleFor(o => o.Saturday, f => dayOccupancyFaker.Generate())
-                .RuleFor(o => o.Sunday, f => dayOccupancyFaker.Generate());
+                .RuleFor(o => o.Monday, f => new DayOccupancy
+                {
+                    WorkPeriod = workPeriod,
+                    BusySlots = busySlotsByDay[DayOfWeek.Monday]
+                })
+                .RuleFor(o => o.Tuesday, f => new DayOccupancy
+                {
+                    WorkPeriod = workPeriod,
+                    BusySlots = busySlotsByDay[DayOfWeek.Tuesday]
+                })
+                .RuleFor(o => o.Wednesday, f => new DayOccupancy
+                {
+                    WorkPeriod = workPeriod,
+                    BusySlots = busySlotsByDay[DayOfWeek.Wednesday]
+                })
+                .RuleFor(o => o.Thursday, f => new DayOccupancy
+                {
+                    WorkPeriod = workPeriod,
+                    BusySlots = busySlotsByDay[DayOfWeek.Thursday]
+                })
+                .RuleFor(o => o.Friday, f => new DayOccupancy
+                {
+                    WorkPeriod = workPeriod,
+                    BusySlots = busySlotsByDay[DayOfWeek.Friday]
+                })
+                .RuleFor(o => o.Saturday, f => new DayOccupancy
+                {
+                    WorkPeriod = workPeriod,
+                    BusySlots = busySlotsByDay[DayOfWeek.Saturday]
+                })
+                .RuleFor(o => o.Sunday, f => new DayOccupancy
+                {
+                    WorkPeriod = workPeriod,
+                    BusySlots = busySlotsByDay[DayOfWeek.Sunday]
+                });
 
             return facilityOccupancyFaker.Generate();
+        }
+
+
+        private List<BusySlot> GenerateBusySlots(int busySlotsPerDay, int slotDurationMinutes, DateTime startOfTheWeek, WorkPeriod workPeriod, DayOfWeek dayOfWeek)
+        {
+            var busySlots = new List<BusySlot>();
+
+            var daysOffset = (int)dayOfWeek - (int)DayOfWeek.Monday;
+            if (daysOffset < 0) daysOffset += 7; 
+
+            var dateOfTheDay = startOfTheWeek.AddDays(daysOffset);
+
+            
+            DateTime workStart = dateOfTheDay.AddHours(workPeriod.StartHour);
+            DateTime workEnd = dateOfTheDay.AddHours(workPeriod.EndHour);
+            DateTime lunchStart = dateOfTheDay.AddHours(workPeriod.LunchStartHour);
+            DateTime lunchEnd = dateOfTheDay.AddHours(workPeriod.LunchEndHour);
+
+            DateTime startSlot = workStart;
+
+            for (int i = 0; i < busySlotsPerDay; i++)
+            {
+                if (IsLunchTime(lunchStart, lunchEnd, startSlot))
+                {
+                    startSlot = lunchEnd;
+                }
+
+                DateTime endSlot = startSlot.AddMinutes(slotDurationMinutes);
+                if (endSlot > workEnd)
+                {
+                    break;
+                }
+
+                var busySlot = new BusySlot
+                {
+                    Start = startSlot,
+                    End = endSlot
+                };
+                busySlots.Add(busySlot);
+
+                startSlot = endSlot;
+            }
+            return busySlots;
+        }
+
+        private static bool IsLunchTime(DateTime lunchStart, DateTime lunchEnd, DateTime startSlot)
+        {
+            return startSlot >= lunchStart && startSlot < lunchEnd;
         }
 
         public AppointmentRequestDTO GenerateFakeAppointmentRequestDTO()

@@ -22,7 +22,7 @@ namespace DocplannerAppointmentScheduler.Domain.Tests
         }
 
         [Test]
-        public void CalculateAvailability_NoBusySlots_ReturnsAllSlotsAvailable()
+        public void CalculateAvailability_ShouldReturnAllSlotsAvailable_WhenNoBusySlots()
         {
             // Arrange
             int slotDurationMinutes = 10;
@@ -32,59 +32,74 @@ namespace DocplannerAppointmentScheduler.Domain.Tests
             int currentYear = DateTime.Now.Year;
             DateTime mondayOfThisWeek = ISOWeek.ToDateTime(currentYear, currentWeek, DayOfWeek.Monday);
 
+            int workDayLengthMinutes = 8 * 60; // We assume a workday of 8 hours for this test.
+            int totalSlotsPerDay = workDayLengthMinutes / slotDurationMinutes;
+
+            int expectedAvailableSlotsPerWeek = 7 * (totalSlotsPerDay - busySlotsPerDay);
 
             var fakeFacilityOccupancy = _dataGenerator.GenerateFakeFacilityOccupancy(slotDurationMinutes, busySlotsPerDay, mondayOfThisWeek);
-            var weeklyAvailability = new WeeklyAvailability(fakeFacilityOccupancy);
 
             // Act
-            var availability = weeklyAvailability.GetAvailability(mondayOfThisWeek);
-
-            // Calculate expected available slots based on the work period from the fake occupancy data
-            int totalExpectedAvailableSlots = CalculateExpectedAvailableSlots(slotDurationMinutes, fakeFacilityOccupancy);
-
-            // Calculate the total available slots from the real availability object
-            int totalAvailableSlots = availability.DaySchedules.Sum(daySchedule => daySchedule.AvailableSlots.Count);
+            var weeklyAvailability = new WeeklyAvailability(fakeFacilityOccupancy).GetAvailability(mondayOfThisWeek);
 
             // Assert
-            Assert.That(totalAvailableSlots, Is.EqualTo(totalExpectedAvailableSlots), "Total available slots do not match the expected count.");
+            
+            int actualAvailableSlots = weeklyAvailability.DaySchedules.Sum(daySchedule => daySchedule.AvailableSlots.Count);
+            Assert.That(actualAvailableSlots, Is.EqualTo(expectedAvailableSlotsPerWeek), "Total available slots do not match the expected count.");
         }
 
-        private static int CalculateExpectedAvailableSlots(int slotDurationMinutes, FacilityOccupancy facilityOccupancy)
+        [Test]
+        public void CalculateAvailability_ShouldReturnCorrectAmmountOfFreeSlots_WhenSomeSlotsBusy()
         {
-            int totalExpectedAvailableSlots = 0;
+            // Arrange
+            int slotDurationMinutes = 10;
+            int busySlotsPerDay = 10;
 
-            foreach (var dayOccupancy in facilityOccupancy.GetType().GetProperties().Where(p => p.PropertyType == typeof(DayOccupancy)))
-            {
-                var dayOccupancyData = dayOccupancy.GetValue(facilityOccupancy) as DayOccupancy;
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+            DateTime mondayOfThisWeek = ISOWeek.ToDateTime(currentYear, currentWeek, DayOfWeek.Monday);
 
-                if (dayOccupancyData != null)
-                {
-                    // Calculate available slots based on work period
-                    int startHour = dayOccupancyData.WorkPeriod.StartHour;
-                    int endHour = dayOccupancyData.WorkPeriod.EndHour;
-                    int lunchStartHour = dayOccupancyData.WorkPeriod.LunchStartHour;
-                    int lunchEndHour = dayOccupancyData.WorkPeriod.LunchEndHour;
+            int workDayLengthMinutes = 8 * 60; // We assume a workday of 8 hours for this test.
+            int totalSlotsPerDay = workDayLengthMinutes / slotDurationMinutes;
 
-                    // Calculate the total available minutes, accounting for lunch breaks
-                    int availableMinutes = (endHour - startHour) * 60; // Total minutes available for appointments
+            int expectedAvailableSlotsPerWeek = 7 * (totalSlotsPerDay - busySlotsPerDay);
 
-                    // Subtract lunch break minutes if lunch falls within the working hours
-                    if (startHour < lunchEndHour && endHour > lunchStartHour)
-                    {
-                        int lunchDuration = Math.Min(endHour, lunchEndHour) - Math.Max(startHour, lunchStartHour);
-                        if (lunchDuration > 0)
-                        {
-                            availableMinutes -= lunchDuration * 60; // Convert hours to minutes
-                        }
-                    }
 
-                    int availableSlotsForDay = availableMinutes / slotDurationMinutes; // Number of available slots
+            var fakeFacilityOccupancy = _dataGenerator.GenerateFakeFacilityOccupancy(slotDurationMinutes, busySlotsPerDay, mondayOfThisWeek);
 
-                    totalExpectedAvailableSlots += availableSlotsForDay;
-                }
-            }
+            // Act
+            var weeklyAvailability = new WeeklyAvailability(fakeFacilityOccupancy).GetAvailability(mondayOfThisWeek);
 
-            return totalExpectedAvailableSlots;
+            // Assert
+            int actualAvailableSlots = weeklyAvailability.DaySchedules.Sum(daySchedule => daySchedule.AvailableSlots.Count);
+            Assert.That(actualAvailableSlots, Is.EqualTo(expectedAvailableSlotsPerWeek), "Total available slots do not match the expected count.");
+        }
+
+        [Test]
+        public void CalculateAvailability_ShouldReturnNoSlotsAvailable_WhenAllSlotsBusy()
+        {
+            // Arrange
+            int slotDurationMinutes = 10;
+
+
+            int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
+            int currentYear = DateTime.Now.Year;
+            DateTime mondayOfThisWeek = ISOWeek.ToDateTime(currentYear, currentWeek, DayOfWeek.Monday);
+
+            int workDayLengthMinutes = 8 * 60; // We assume a workday of 8 hours for this test.
+            int totalSlotsPerDay = workDayLengthMinutes / slotDurationMinutes;
+
+            int expectedAvailableSlotsPerWeek = 0;
+
+
+            var fakeFacilityOccupancy = _dataGenerator.GenerateFakeFacilityOccupancy(slotDurationMinutes, busySlotsPerDay: totalSlotsPerDay, mondayOfThisWeek);
+
+            // Act
+            var weeklyAvailability = new WeeklyAvailability(fakeFacilityOccupancy).GetAvailability(mondayOfThisWeek);
+
+            // Assert
+            int actualAvailableSlots = weeklyAvailability.DaySchedules.Sum(daySchedule => daySchedule.AvailableSlots.Count);
+            Assert.That(actualAvailableSlots, Is.EqualTo(expectedAvailableSlotsPerWeek), "Total available slots do not match the expected count.");
         }
     }
 }
