@@ -41,9 +41,9 @@ namespace DocplannerAppointmentScheduler.Core.Services
             string apiPassword = Environment.GetEnvironmentVariable("AvailabilityServicePassword");
 
             if (string.IsNullOrEmpty(apiUser))
-                throw new MissingEnvironmentVariableException("AvailabilityServiceUser is missing.");
+                throw new MissingEnvironmentVariableException("AvailabilityServiceUser environment variable is missing.");
             if (string.IsNullOrEmpty(apiPassword))
-                throw new MissingEnvironmentVariableException("AvailabilityServicePassword is missing.");
+                throw new MissingEnvironmentVariableException("AvailabilityServicePassword environment variable is missing.");
 
 
             string apiKey = apiUser + ":" + apiPassword;
@@ -83,7 +83,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
             catch (MissingEnvironmentVariableException ex)
             {
-                return new HttpResponseMessage(HttpStatusCode.BadRequest)
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
                 {
                     Content = new StringContent($"Configuration error: {ex.Message}. Please ensure all required environment variables are set.")
                 };
@@ -152,7 +152,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
             catch (MissingEnvironmentVariableException ex)
             {
-                return new HttpResponseMessage(HttpStatusCode.BadRequest)
+                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
                 {
                     Content = new StringContent($"Configuration error: {ex.Message}. Please ensure all required environment variables are set.")
                 };
