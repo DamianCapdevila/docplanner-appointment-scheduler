@@ -118,6 +118,8 @@ Before running the application, ensure that the following preconditions are met:
   
 - If the availability service is down, you will receive a `503 Service Unavailable` error when attempting to schedule or retrieve appointments. Ensure that the external service is available before proceeding.
 
+- If the required environment variables are not set, the API will return a `400 Bad Request` response with an error message indicating which environment variable is missing. **Refer to the [Preconditions](#preconditions) section for for hints on how to set the required environment variables.**
+
 ## 👆🏻🖱 Using the application
 
 After successfully running the application, you will see something like this in your browser:
