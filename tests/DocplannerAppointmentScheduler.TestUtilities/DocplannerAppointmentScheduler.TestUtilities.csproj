@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Api\DocplannerAppointmentScheduler.Api.csproj" />
+    <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Core\DocplannerAppointmentScheduler.Core.csproj" />
+    <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Domain\DocplannerAppointmentScheduler.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,11 @@
 @DocplannerAppointmentScheduler.Api_HostAddress = http://localhost:5234
 
-GET {{DocplannerAppointmentScheduler.Api_HostAddress}}/weatherforecast/
+### Get Available Slots
+GET {{DocplannerAppointmentScheduler.Api_HostAddress}}/api/scheduler/availableSlots?weekNumber=42&year=2024
 Accept: application/json
 
 ###
+
+### Schedule an Appointment
+POST {{DocplannerAppointmentScheduler.Api_HostAddress}}/api/scheduler/scheduleAppointment
+Content-Type: application/json
