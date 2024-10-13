@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -19,9 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\DocplannerAppointmentScheduler.TestUtilities\DocplannerAppointmentScheduler.TestUtilities.csproj" />
     <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Api\DocplannerAppointmentScheduler.Api.csproj" />
     <ProjectReference Include="..\..\src\DocplannerAppointmentScheduler.Core\DocplannerAppointmentScheduler.Core.csproj" />
+    <ProjectReference Include="..\DocplannerAppointmentScheduler.TestUtilities\DocplannerAppointmentScheduler.TestUtilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
