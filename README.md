@@ -39,7 +39,7 @@ Before running the application, ensure that the following preconditions are met:
 
 1. **Environment Variables Setup**:
 
-   The application depends on two environment variables for getting authorized to consume the external availability service:
+   The application depends on two environment variables to get authorized to consume the external availability service:
    - `AvailabilityServiceUser`: The username for the availability service.
    - `AvailabilityServicePassword`: The password for the availability service.
 
