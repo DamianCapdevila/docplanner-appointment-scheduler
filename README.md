@@ -17,7 +17,7 @@ Using this Appointment Scheduler, patients can book appointments with a doctor.
 
 *- There will be always at the most 1 facility inside the external availability service response.* 
 
-*- In reality, external availability service should store busy slots from us when we make an appointment. It doesn´t, but we assume it does.*
+*- In reality, external availability service should create more busy slots when we make an appointment. It doesn´t, but we assume it does.*
 
 *- Patients interact with the appointment scheduler service, we have control over it.*
 
@@ -28,7 +28,7 @@ Using this Appointment Scheduler, patients can book appointments with a doctor.
 *- We assume we don´t store the appointments in a database, that could be done in a further step of development.*
 
 
-🧪 **ANY OTHER ASSUMPTIONS CAN BE DERIVED FROM TESTS.** Find tests under the test folder in this repository.
+🧪 **OTHER ASSUMPTIONS CAN BE DERIVED FROM TESTS.** Find tests under the test folder in this repository.
 
 
 ## 🏃🏻‍♂️ How to run the Appointment Scheduler
@@ -39,7 +39,7 @@ Before running the application, ensure that the following preconditions are met:
 
 1. **Environment Variables Setup**:
 
-   The application depends on two environment variables for authentication with the external availability service:
+   The application depends on two environment variables for getting authorized to consume the external availability service:
    - `AvailabilityServiceUser`: The username for the availability service.
    - `AvailabilityServicePassword`: The password for the availability service.
 
@@ -177,7 +177,7 @@ After successfully running the application, you will see something like this in 
     }
 }
 ```
-You can then use the available slots values to schedule an appointment. See below how.
+You can then use an available slot´s start and end values to schedule an appointment. See below how.
 
 **To schedule an appointment, please use this endpoint:**
 
@@ -200,13 +200,13 @@ Make sure the request body is correct. See an example below:
 }
 ```
 - start and end should be formatted like: yyyy-MM-ddTHH:mm:ss
-- start and end should be in the future respect to the current   time.
+- start and end should be in the future respect to the current time.
 - phone number should be valid.
 
-There are more requirements, the api will return bad request and tell you what´s wrong in case you miss one :).
+- There are more requirements, the api will return bad request and tell you what´s wrong in case you miss one :).
 
 If the appointment is successfully created, the api will return
-a 201 Created Error with the following object:
+a 201 Created status code with the following object:
 ```json
 {
   "message": "Appointment scheduled successfully!"
