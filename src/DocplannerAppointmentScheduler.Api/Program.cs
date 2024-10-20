@@ -1,6 +1,7 @@
 using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Core.Mappers;
 using DocplannerAppointmentScheduler.Api.Mappers;
+using DocplannerAppointmentScheduler.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,9 +17,12 @@ builder.Services.AddScoped<ISchedulerService, SchedulerService>();
 builder.Services.AddScoped<IAvailabilityService, AvailabilityService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options =>
 {
@@ -43,6 +47,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAllOrigins");
+
+app.UseExceptionHandler();
 
 app.UseAuthorization();
 

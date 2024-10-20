@@ -30,34 +30,21 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAvailableSlots([FromQuery] AvailableSlotsRequest request)
         {
-            try
+            var response = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
+            if (response.IsSuccessStatusCode)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+                var content = await response.Content.ReadAsStringAsync();
+                var weeklyAvailability = JsonConvert.DeserializeObject<WeeklyAvailabilityDTO>(content);
 
-                var response = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var weeklyAvailability = JsonConvert.DeserializeObject<WeeklyAvailabilityDTO>(content);
-
-                    return Ok(weeklyAvailability);
-                }
-                _logger.LogWarning($"Failed to get weekly availability. External availability service returned {response.StatusCode}.");
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
-                {
-                    message = $"External service error getting available slots for week {request.WeekNumber}, year {request.Year}.",
-                    reason = $"The external availability service returned {response.StatusCode}.",
-                    details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
-                });
+                return Ok(weeklyAvailability);
             }
-            catch (Exception ex)
+            _logger.LogWarning($"Failed to get weekly availability. External availability service returned {response.StatusCode}.");
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
-                _logger.LogError(ex, $"Internal error getting available slots for week {request.WeekNumber}, year {request.Year}.");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while retrieving available slots." });
-            }
+                message = $"External service error getting available slots for week {request.WeekNumber}, year {request.Year}.",
+                reason = $"The external availability service returned {response.StatusCode}.",
+                details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
+            });
         }
 
         [HttpPost("scheduleAppointment")]
@@ -68,33 +55,20 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ScheduleAppointment([FromBody] AppointmentRequest request)
         {
-            try
+            var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
+            var response = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);               
+            if (response.IsSuccessStatusCode)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-
-                var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
-                var response = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);               
-                if (response.IsSuccessStatusCode)
-                {
-                    return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
-                }
+                return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
+            }
                 
-                _logger.LogWarning($"Failed to get schedule appointment. External availability service returned {response.StatusCode}.");
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
-                {
-                        message = $"An error occurred in the external availability service when scheduling an appointment.",
-                        reason = $"The external availability service returned {response.StatusCode}.",
-                        details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
-                });
-            }
-            catch (Exception ex)
+            _logger.LogWarning($"Failed to get schedule appointment. External availability service returned {response.StatusCode}.");
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
-                _logger.LogError(ex, $"Error scheduling an appointment at {request.Start}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An internal error occurred while scheduling an appointment" });
-            }
+                    message = $"An error occurred in the external availability service when scheduling an appointment.",
+                    reason = $"The external availability service returned {response.StatusCode}.",
+                    details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
+            });
         }
     }
 }
