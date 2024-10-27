@@ -23,7 +23,8 @@ Configuration: Your use of configuration and logging for warnings and errors is 
 
 - [x] **Error Handling:** Error handling is done directly in controller actions rather than globally, which can lead to fragmented and inconsistent handling of errors.
 
-- [ ] **Test Coverage:** No meaningful tests were identified, and it would be helpful to see more unit and integration tests, especially for critical business logic such as booking.
+- [ ] **Test Coverage:**  Meaningful tests		Good	Again - between good and basic. Candidate covered all cases which he had in his project -> that's why I mark it as Good. In same time, I expecting more tests related to business logic, especially for booking slots flow, but as mentioned above - this flow implemented partially and there is not much sense in taking into account
+
 
 ## Final Thoughts:
 
