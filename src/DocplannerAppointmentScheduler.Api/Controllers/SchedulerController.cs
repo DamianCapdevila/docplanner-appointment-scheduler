@@ -33,8 +33,8 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         public async Task<IActionResult> GetAvailableSlots([FromQuery] AvailableSlotsRequest request)
         {
             var result = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
-            return result.Match<IActionResult>(
-                    success => Ok(success),
+            return result.Match(
+                    Ok,
                     serviceError => this.HandleServiceError(_logger, serviceError,
                     $"getting available slots for week {request.WeekNumber}, year {request.Year}.")
             );
@@ -50,7 +50,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         {
             var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
             var result = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);
-            return result.Match<IActionResult>(
+            return result.Match(
                     success => Created("/appointments/{id}", $"Appointment created at {request.Start}"),
                     serviceError => this.HandleServiceError(_logger, serviceError,
                     $"Scheduling appointment at {request.Start}")
