@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Net;
 using DocplannerAppointmentScheduler.Core.Exceptions;
+using DocplannerAppointmentScheduler.Core.Results;
 
 
 namespace DocplannerAppointmentScheduler.Core.Services
@@ -53,7 +54,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             return apiKeySecret;
         }
 
-        public async Task<HttpResponseMessage> GetWeeklyAvailabilityAsync(int weekNumber, int year)
+        public async Task<Result<WeeklyAvailabilityDTO>> GetWeeklyAvailabilityAsync(int weekNumber, int year)
         {
             try
             {
@@ -67,33 +68,28 @@ namespace DocplannerAppointmentScheduler.Core.Services
                 
                 if (filteredOccupancyResponse.StatusCode != HttpStatusCode.OK)
                 {
-                    return new HttpResponseMessage(filteredOccupancyResponse.StatusCode)
-                    {
-                        Content = new StringContent("An error occurred in the external availability service while processing the request.")
-                    };
+                    return await Task.FromResult(Result<WeeklyAvailabilityDTO>.
+                                     Failure(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{filteredOccupancyResponse.StatusCode}")));
                 }
 
                 var weeklyAvailability = await DetermineWeeklyAvailability(filteredOccupancyResponse, mondayOfSelectedWeek);
 
-                var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability, Formatting.Indented);
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent(weeklyAvailabilityJson, Encoding.UTF8, "application/json")
-                };
+                //var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability, Formatting.Indented);
+                
+                return await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(weeklyAvailability));
             }
             catch (MissingEnvironmentVariableException ex)
             {
-                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
-                {
-                    Content = new StringContent($"Configuration error: {ex.Message}. Please ensure all required environment variables are set.")
-                };
+                return await Task.FromResult(Result<WeeklyAvailabilityDTO>.
+                                     Failure(new Error(Message: $"Configuration error: {ex.Message}. Please ensure all required environment variables are set.",
+                                                       Code: $"{HttpStatusCode.Unauthorized}")));
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent("An error occurred in the external availability service while processing the request.")
-                };
+                return await Task.FromResult(Result<WeeklyAvailabilityDTO>.
+                                     Failure(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.InternalServerError}")));
             }
         }
 
@@ -135,7 +131,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
         }
 
-        public async Task<HttpResponseMessage> TakeSlotAsync(AppointmentRequestDTO request)
+        public async Task<Result<bool>> TakeSlotAsync(AppointmentRequestDTO request)
         {
             try
             {
@@ -148,21 +144,27 @@ namespace DocplannerAppointmentScheduler.Core.Services
                 var httpClient = CreateExternalAvailabilityServiceHttpClient();
 
                 var response = await httpClient.PostAsync("TakeSlot", content);
-                return FilterExternalServiceResponse(response);
+                var filteredResponse = FilterExternalServiceResponse(response);
+
+                if (filteredResponse.StatusCode != HttpStatusCode.OK)
+                {
+                    return await Task.FromResult(Result<bool>.
+                                     Failure(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{filteredResponse.StatusCode}")));
+                }
+                return await Task.FromResult(Result<bool>.Success(true));
             }
             catch (MissingEnvironmentVariableException ex)
             {
-                return new HttpResponseMessage(HttpStatusCode.Unauthorized)
-                {
-                    Content = new StringContent($"Configuration error: {ex.Message}. Please ensure all required environment variables are set.")
-                };
+                return await Task.FromResult(Result<bool>.
+                                     Failure(new Error(Message: $"Configuration error: {ex.Message}. Please ensure all required environment variables are set.",
+                                                       Code: $"{HttpStatusCode.Unauthorized}")));
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError)
-                {
-                    Content = new StringContent("An error occurred in the external availability service while processing the request.")
-                };
+                return await Task.FromResult(Result<bool>.
+                                     Failure(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.InternalServerError}")));
             }
         }
 

@@ -1,4 +1,5 @@
 using DocplannerAppointmentScheduler.Core.DTOs;
+using DocplannerAppointmentScheduler.Core.Results;
 using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Domain;
 using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
@@ -26,7 +27,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var fakeDataGenerator = new FakeDataGenerator();
             var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse();
 
-            _availabilityServiceMock.Setup(s => s.GetWeeklyAvailabilityAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(fakeResponse);
+            _availabilityServiceMock.Setup(s => s.GetWeeklyAvailabilityAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(It.IsAny<WeeklyAvailabilityDTO>())));
 
             //Act
             var availableSlots = await _schedulerService.GetAvailableSlotsAsync(It.IsAny<int>(), It.IsAny<int>());
@@ -45,17 +46,13 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var fakeDataGenerator = new FakeDataGenerator();
             var fakeWeeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailabilityDTO(slotDurationMinutes, ammountFreeSlotsPerDay);
 
-            var serializedAvailability = JsonConvert.SerializeObject(fakeWeeklyAvailability);
-            var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(serializedAvailability);
-
-
-            _availabilityServiceMock.Setup(s => s.GetWeeklyAvailabilityAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(fakeResponse);
+            _availabilityServiceMock.Setup(s => s.GetWeeklyAvailabilityAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(fakeWeeklyAvailability)));
             
             //Act
             var availableSlots = await _schedulerService.GetAvailableSlotsAsync(It.IsAny<int>(), It.IsAny<int>());
 
             //Assert
-            Assert.That(availableSlots.Content, Is.EqualTo(fakeResponse.Content));
+            Assert.That(availableSlots.Value, Is.EqualTo(fakeWeeklyAvailability));
         }
 
         [Test]
@@ -77,7 +74,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         public async Task ScheduleAppointmentAsync_ShouldCall_AvailabilityService_TakeSlotAsync()
         {
             //Arrange
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK));
+            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(await Task.FromResult(Result<bool>.Success(It.IsAny<bool>())));
 
             //Act
             var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>());
@@ -93,13 +90,13 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var randomResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse();
 
 
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(randomResponseMessage);
+            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(await Task.FromResult(Result<bool>.Success(true)));
 
             //Act
             var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(new AppointmentRequestDTO());
 
             //Assert
-            Assert.That(appointmentScheduled, Is.EqualTo(randomResponseMessage));
+            Assert.That(appointmentScheduled.Value, Is.EqualTo(true));
         }
 
         [Test]

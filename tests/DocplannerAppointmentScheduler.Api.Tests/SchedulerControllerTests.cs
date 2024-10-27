@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using DocplannerAppointmentScheduler.Core.Services;
+using DocplannerAppointmentScheduler.Core.Results;
 using DocplannerAppointmentScheduler.Api.Controllers;
 using DocplannerAppointmentScheduler.Api.Models;
 using Moq;
@@ -13,6 +14,7 @@ using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
 using DocplannerAppointmentScheduler.TestUtilities.Enums;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 
 
 namespace DocplannerAppointmentScheduler.Api.Tests
@@ -46,12 +48,10 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
             var fakeDataGenerator = new FakeDataGenerator();
             var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailabilityDTO(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 2);
-            
-            var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(weeklyAvailability, range: StatusCodeRange.Success);
 
             // Mock the GetAvailableSlotsAsync method to return the HttpResponseMessage
             _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(currentWeek, currentYear))
-                .ReturnsAsync(fakeResponse);
+                .ReturnsAsync(await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(weeklyAvailability)));
 
             //Act
             var result = await _schedullerController.GetAvailableSlots(request);
@@ -81,11 +81,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             var fakeDataGenerator = new FakeDataGenerator();
             var weeklyAvailability = fakeDataGenerator.GenerateFakeWeeklyAvailabilityDTO(slotDurationMinutes: 10, ammountFreeSlotsPerDay: 0);
             
-            var fakeResponse = fakeDataGenerator.GenerateFakeHttpResponse(weeklyAvailability, range: StatusCodeRange.Success);
 
-            
             _schedulerServiceMock.Setup(s => s.GetAvailableSlotsAsync(currentWeek, currentYear))
-                .ReturnsAsync(fakeResponse);
+                .ReturnsAsync(await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(weeklyAvailability)));
 
             //Act
             var result = await _schedullerController.GetAvailableSlots(request);
@@ -133,13 +131,11 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
 
-            var fakeDataGenerator = new FakeDataGenerator();
-            var successResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(range: StatusCodeRange.Success);
-
-
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(successResponseMessage);
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).
+                                 ReturnsAsync(await Task.FromResult(Result<bool>.Success(true)));
 
             // Act
+            
             var result = await _schedullerController.ScheduleAppointment(request);
 
             // Assert
@@ -171,12 +167,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
 
 
-            var fakeDataGenerator = new FakeDataGenerator();
-            var unsuccessfullResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(range: StatusCodeRange.AllButSuccess);
-
 
             _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>()))
-                            .ReturnsAsync(unsuccessfullResponseMessage);
+                            .ReturnsAsync(await Task.FromResult(Result<bool>.Failure(new Error("Error","Error code"))));
 
             // Act
             var result = await _schedullerController.ScheduleAppointment(request);

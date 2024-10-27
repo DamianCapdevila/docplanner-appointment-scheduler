@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Core.Services;
+using DocplannerAppointmentScheduler.Core.Results;
 using DocplannerAppointmentScheduler.Domain;
 using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +10,7 @@ using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using System.Globalization;
 using System.Net;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace DocplannerAppointmentScheduler.Core.Tests
 {
@@ -29,14 +31,13 @@ namespace DocplannerAppointmentScheduler.Core.Tests
 
         #region TAKE SLOT
         [Test]
-        public async Task TakeSlotAsync_ShouldReturnSameResponse_Than_ExternalAvailabilityService_When_ExternalAvailabilityService_ReturnsSuccess()
+        public async Task TakeSlotAsync_ShouldReturnTrue_Than_ExternalAvailabilityService_When_ExternalAvailabilityService_ReturnsOk()
         {
             //Arrange
             var fakeDataGenerator = new FakeDataGenerator();
-            var randomResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse(range: TestUtilities.Enums.StatusCodeRange.Success);
-
+            
             var mockHttp = new MockHttpMessageHandler();
-            mockHttp.When("*").Respond(req => randomResponseMessage);
+            mockHttp.When("*").Respond(HttpStatusCode.OK);
             
 
             var client = mockHttp.ToHttpClient();
@@ -50,7 +51,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var result = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
 
             //Assert
-            Assert.That(result.StatusCode, Is.EqualTo(randomResponseMessage.StatusCode));
+            Assert.That(result.Value, Is.True);
         }
 
         [Test]
@@ -72,7 +73,8 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError)); 
+            Assert.That(response.Error, Is.EqualTo(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.InternalServerError}"))); 
         }
 
         [Test]
@@ -94,7 +96,8 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(response.Error, Is.EqualTo(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.BadRequest}")));
         }
 
         [Test]
@@ -116,7 +119,8 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(response.Error, Is.EqualTo(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.Unauthorized}")));
         }
 
         [Test]
@@ -138,14 +142,15 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.TakeSlotAsync(fakeAppointmentRequest);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            Assert.That(response.Error, Is.EqualTo(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.NotFound}")));
         }
 
         #endregion
 
         #region GET WEEKLY AVAILABILITY
         [Test]
-        public async Task GetWeeklyAvailabilityAsync_ShouldReturnOk_When_ExternalAvailabilityService_ReturnsOkWithValidData()
+        public async Task GetWeeklyAvailabilityAsync_ShouldReturnSuccess_When_ExternalAvailabilityService_ReturnsOkWithValidData()
         {
             //Arrange
             int currentWeek = ISOWeek.GetWeekOfYear(DateTime.Now);
@@ -179,7 +184,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var result = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
 
             //Assert
-            Assert.That(result.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(result.IsSuccess, Is.True);
         }
 
         [Test]
@@ -204,7 +209,8 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
+            Assert.That(response.Error, Is.EqualTo(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.InternalServerError}")));
         }
 
         [Test]
@@ -229,7 +235,8 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(response.Error, Is.EqualTo(new Error(Message: "An error occurred in the external availability service while processing the request.",
+                                                       Code: $"{HttpStatusCode.BadRequest}")));
         }
 
         [Test]
@@ -254,7 +261,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+            Assert.That(response.Error?.Code, Is.EqualTo(HttpStatusCode.Unauthorized.ToString()));
         }
 
         [Test]
@@ -279,7 +286,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var response = await _availabilityService.GetWeeklyAvailabilityAsync(currentWeek, currentYear);
 
             //Assert
-            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+            Assert.That(response.Error?.Code, Is.EqualTo(HttpStatusCode.NotFound.ToString()));
         }
         #endregion
 

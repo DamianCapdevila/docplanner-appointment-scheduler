@@ -1,4 +1,5 @@
 ﻿using DocplannerAppointmentScheduler.Core.DTOs;
+using DocplannerAppointmentScheduler.Core.Results;
 
 namespace DocplannerAppointmentScheduler.Core.Services
 {
@@ -9,12 +10,12 @@ namespace DocplannerAppointmentScheduler.Core.Services
         {
             _availabilityService = availabilityService;
         }
-        public async Task<HttpResponseMessage> GetAvailableSlotsAsync(int weekNumber, int year)
+        public async Task<Result<WeeklyAvailabilityDTO>> GetAvailableSlotsAsync(int weekNumber, int year)
         {
             return await _availabilityService.GetWeeklyAvailabilityAsync(weekNumber, year);
         }
 
-        public async Task<HttpResponseMessage> ScheduleAppointmentAsync(AppointmentRequestDTO appointmentRequest)
+        public async Task<Result<bool>> ScheduleAppointmentAsync(AppointmentRequestDTO appointmentRequest)
         {
             return await _availabilityService.TakeSlotAsync(appointmentRequest);
         }

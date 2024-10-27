@@ -4,6 +4,8 @@ using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Api.Models;
 using AutoMapper;
 using Newtonsoft.Json;
+using DocplannerAppointmentScheduler.Api.Infrastructure;
+using DocplannerAppointmentScheduler.Core.Results;
 
 namespace DocplannerAppointmentScheduler.Api.Controllers
 {
@@ -30,45 +32,29 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAvailableSlots([FromQuery] AvailableSlotsRequest request)
         {
-            var response = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var weeklyAvailability = JsonConvert.DeserializeObject<WeeklyAvailabilityDTO>(content);
-
-                return Ok(weeklyAvailability);
-            }
-            _logger.LogWarning($"Failed to get weekly availability. External availability service returned {response.StatusCode}.");
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
-            {
-                message = $"External service error getting available slots for week {request.WeekNumber}, year {request.Year}.",
-                reason = $"The external availability service returned {response.StatusCode}.",
-                details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
-            });
+            var result = await _schedulerService.GetAvailableSlotsAsync(request.WeekNumber, request.Year);
+            return result.Match<IActionResult>(
+                    success => Ok(success),
+                    serviceError => this.HandleServiceError(_logger, serviceError,
+                    $"getting available slots for week {request.WeekNumber}, year {request.Year}.")
+            );
         }
 
         [HttpPost("scheduleAppointment")]
         [Produces("application/json")]
-        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(string[]))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ScheduleAppointment([FromBody] AppointmentRequest request)
         {
             var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
-            var response = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);               
-            if (response.IsSuccessStatusCode)
-            {
-                return StatusCode(StatusCodes.Status201Created, new { message = "Appointment scheduled successfully!" });
-            }
-                
-            _logger.LogWarning($"Failed to get schedule appointment. External availability service returned {response.StatusCode}.");
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new
-            {
-                    message = $"An error occurred in the external availability service when scheduling an appointment.",
-                    reason = $"The external availability service returned {response.StatusCode}.",
-                    details = $"The external availability service returned the follorwing content: " + await response.Content.ReadAsStringAsync()
-            });
+            var result = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);
+            return result.Match<IActionResult>(
+                    success => Created("/appointments/{id}", $"Appointment created at {request.Start}"),
+                    serviceError => this.HandleServiceError(_logger, serviceError,
+                    $"Scheduling appointment at {request.Start}")
+            );
         }
     }
 }
