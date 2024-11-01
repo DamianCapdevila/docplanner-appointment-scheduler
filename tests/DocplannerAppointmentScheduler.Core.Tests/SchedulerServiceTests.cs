@@ -13,7 +13,7 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         private Mock<IAvailabilityService> _availabilityServiceMock;
         private SchedulerService _schedulerService;
         
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             _availabilityServiceMock = new Mock<IAvailabilityService>();

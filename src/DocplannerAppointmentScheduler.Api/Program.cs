@@ -1,15 +1,13 @@
 using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Core.Mappers;
-using DocplannerAppointmentScheduler.Api.Mappers;
 using DocplannerAppointmentScheduler.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add automappers.
 builder.Services.AddAutoMapper(typeof(CoreAndDomainMapper));
-builder.Services.AddAutoMapper(typeof(ApiAndCoreMapper));
 
-// Add an http client factory to services, it is used to instantiate an http client for external availability api calls
+// Add a http client factory to services, it is used to instantiate a http client for external availability api calls
 builder.Services.AddHttpClient();
 
 // Add services to the container.

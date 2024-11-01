@@ -14,12 +14,11 @@ namespace DocplannerAppointmentScheduler.IntegrationTests
     public class IntegrationTests
     {
         private WebApplicationFactory<Program> _factory;
-        private Mock<ISchedulerService> _schedulerServiceMock;
+
         [SetUp]
         public void Setup()
         {
             _factory = new WebApplicationFactory<Program>();
-            _schedulerServiceMock = new Mock<ISchedulerService>();
         }
 
         [TearDown]
@@ -111,7 +110,7 @@ namespace DocplannerAppointmentScheduler.IntegrationTests
                 End = DateTime.UtcNow.AddDays(1).AddHours(1),
                 FacilityId = Guid.NewGuid(),
                 Comment = "Hello Docplanner!",
-                PatientRequest = new PatientRequest
+                Patient = new Patient
                 {
                     Name = "Damian",
                     SecondName = "Capdevila",
@@ -141,7 +140,7 @@ namespace DocplannerAppointmentScheduler.IntegrationTests
                 End = DateTime.UtcNow.AddDays(1).AddHours(1),
                 FacilityId = Guid.NewGuid(),
                 Comment = "Hello Docplanner!",
-                PatientRequest = new PatientRequest
+                Patient = new Patient
                 {
                     Name = "Damian",
                     SecondName = "Capdevila",
@@ -173,7 +172,7 @@ namespace DocplannerAppointmentScheduler.IntegrationTests
                 End = DateTime.UtcNow.AddDays(1).AddHours(1),
                 FacilityId = Guid.NewGuid(),
                 Comment = "Hello Docplanner!",
-                PatientRequest = new PatientRequest
+                Patient = new Patient
                 {
                     Name = "Damian",
                     SecondName = "Capdevila",

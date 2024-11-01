@@ -7,14 +7,8 @@ using Moq;
 using DocplannerAppointmentScheduler.Core.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
-using AutoMapper;
 using System.Net;
-using Bogus;
 using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
-using DocplannerAppointmentScheduler.TestUtilities.Enums;
-using Newtonsoft.Json;
-using System.Text;
-using Microsoft.AspNetCore.Http;
 
 
 namespace DocplannerAppointmentScheduler.Api.Tests
@@ -23,7 +17,6 @@ namespace DocplannerAppointmentScheduler.Api.Tests
     {
         private Mock<ISchedulerService> _schedulerServiceMock;
         private Mock<ILogger<SchedulerController>> _loggerMock;
-        private Mock<IMapper> _mapperMock;
         private SchedulerController _schedulerController;
 
         [SetUp]
@@ -31,8 +24,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         {
             _schedulerServiceMock = new Mock<ISchedulerService>();
             _loggerMock = new Mock<ILogger<SchedulerController>>();
-            _mapperMock = new Mock<IMapper>();
-            _schedulerController = new SchedulerController(_schedulerServiceMock.Object, _loggerMock.Object, _mapperMock.Object);
+            _schedulerController = new SchedulerController(_schedulerServiceMock.Object, _loggerMock.Object);
 
         }
 
@@ -67,7 +59,8 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             Assert.IsNotNull(response);
 
             //Check that the content of the response contains available slots
-            Assert.That(response.DaySchedules.Sum(ds => ds.AvailableSlots.Count), Is.EqualTo(weeklyAvailability.DaySchedules.Sum(ds=>ds.AvailableSlots.Count)));
+            Assert.That(response.DaySchedules.Sum(ds => ds.AvailableSlots.Count),
+                Is.EqualTo(weeklyAvailability.DaySchedules.Sum(ds => ds.AvailableSlots.Count)));
         }
 
         [Test]
@@ -117,7 +110,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                 End = DateTime.UtcNow.AddDays(1).AddHours(1),
                 FacilityId = Guid.NewGuid(),
                 Comment = "Hello Docplanner!",
-                PatientRequest = new PatientRequest
+                Patient = new Patient
                 {
                     Name = "Damian",
                     SecondName = "Capdevila",
@@ -125,15 +118,9 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                     Phone = "+341234567890"
                 }
             };
-
-
-            var appointmentRequestDto = new AppointmentRequestDTO();
-            _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
-
-
+            
             _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).
                                  ReturnsAsync(await Task.FromResult(Result<bool>.Success(true)));
-
             // Act
             
             var result = await _schedulerController.ScheduleAppointment(request);
@@ -154,7 +141,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                 End = DateTime.UtcNow.AddDays(1).AddHours(1),
                 FacilityId = Guid.NewGuid(),
                 Comment = "Hello Docplanner!",
-                PatientRequest = new PatientRequest
+                Patient = new Patient
                 {
                     Name = "Damian",
                     SecondName = "Capdevila",
@@ -162,12 +149,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                     Phone = "+341234567890"
                 }
             };
-
-            var appointmentRequestDto = new AppointmentRequestDTO();
-            _mapperMock.Setup(m => m.Map<AppointmentRequestDTO>(request)).Returns(appointmentRequestDto);
-
-
-
+            
             _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>()))
                             .ReturnsAsync(await Task.FromResult(Result<bool>.Failure(new Error("Error","Error code"))));
 

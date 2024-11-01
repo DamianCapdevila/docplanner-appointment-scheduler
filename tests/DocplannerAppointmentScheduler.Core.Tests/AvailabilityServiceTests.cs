@@ -4,13 +4,11 @@ using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Core.Results;
 using DocplannerAppointmentScheduler.Domain;
 using DocplannerAppointmentScheduler.TestUtilities.DataBuilders;
-using Microsoft.AspNetCore.Http;
 using Moq;
 using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using System.Globalization;
 using System.Net;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace DocplannerAppointmentScheduler.Core.Tests
 {
@@ -21,14 +19,14 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         private AvailabilityService _availabilityService;
        
 
-        [SetUp]
+        [OneTimeSetUp]
         public void Setup()
         {
             _mapperMock = new Mock<IMapper>();
             _httpClientFactoryMock = new Mock<IHttpClientFactory>();
             _availabilityService = new AvailabilityService(_mapperMock.Object, _httpClientFactoryMock.Object);
         }
-
+        
         #region TAKE SLOT
         [Test]
         public async Task TakeSlotAsync_ShouldReturnTrue_Than_ExternalAvailabilityService_When_ExternalAvailabilityService_ReturnsOk()

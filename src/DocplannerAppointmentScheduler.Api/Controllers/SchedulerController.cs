@@ -15,13 +15,11 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
     {
         private readonly ISchedulerService _schedulerService;
         private readonly ILogger _logger;
-        private readonly IMapper _mapper;
 
-        public SchedulerController(ISchedulerService schedulerService, ILogger<SchedulerController> logger, IMapper mapper)
+        public SchedulerController(ISchedulerService schedulerService, ILogger<SchedulerController> logger)
         {
             _schedulerService = schedulerService;
             _logger = logger;
-            _mapper = mapper;
         }
 
         [HttpGet("availableSlots")]
@@ -48,8 +46,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> ScheduleAppointment([FromBody] AppointmentRequest request)
         {
-            var appointmentRequest = _mapper.Map<AppointmentRequestDTO>(request);
-            var result = await _schedulerService.ScheduleAppointmentAsync(appointmentRequest);
+            var result = await _schedulerService.ScheduleAppointmentAsync(request);
             return result.Match(
                     success => Created("/appointments/{id}", $"Appointment created at {request.Start}"),
                     serviceError => this.HandleServiceError(_logger, serviceError,

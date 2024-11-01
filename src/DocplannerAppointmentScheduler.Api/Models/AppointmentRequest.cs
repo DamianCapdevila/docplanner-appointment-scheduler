@@ -1,4 +1,5 @@
 ﻿using DocplannerAppointmentScheduler.Api.Validators;
+using DocplannerAppointmentScheduler.Core.DTOs;
 using System.ComponentModel.DataAnnotations;
 
 namespace DocplannerAppointmentScheduler.Api.Models
@@ -24,10 +25,23 @@ namespace DocplannerAppointmentScheduler.Api.Models
         public string Comment { get; set; }
 
         [Required]
-        public PatientRequest PatientRequest { get; set; }
+        public Patient Patient { get; set; }
+        
+        
+        public static implicit operator AppointmentRequestDTO(AppointmentRequest appointmentRequest)
+        {
+            return new AppointmentRequestDTO()
+            {
+                Start = appointmentRequest.Start,
+                End = appointmentRequest.End,
+                FacilityId = appointmentRequest.FacilityId,
+                Comment = appointmentRequest.Comment,
+                Patient = appointmentRequest.Patient,
+            };
+        }
     }
 
-    public class PatientRequest
+    public class Patient
     {
         [Required]
         [StringLength(100)]
@@ -44,6 +58,17 @@ namespace DocplannerAppointmentScheduler.Api.Models
         [Required]
         [Phone]
         public string Phone { get; set; }
+
+        public static implicit operator PatientDTO(Patient patient)
+        {
+            return new PatientDTO()
+            {
+                Name = patient.Name,
+                SecondName = patient.SecondName,
+                Email = patient.Email,
+                Phone = patient.Phone
+            };
+        }
         
     }
 }
