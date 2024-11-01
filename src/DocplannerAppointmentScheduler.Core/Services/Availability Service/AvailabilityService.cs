@@ -75,8 +75,6 @@ namespace DocplannerAppointmentScheduler.Core.Services
 
                 var weeklyAvailability = await DetermineWeeklyAvailability(filteredOccupancyResponse, mondayOfSelectedWeek);
 
-                //var weeklyAvailabilityJson = JsonConvert.SerializeObject(weeklyAvailability, Formatting.Indented);
-                
                 return await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(weeklyAvailability));
             }
             catch (MissingEnvironmentVariableException ex)

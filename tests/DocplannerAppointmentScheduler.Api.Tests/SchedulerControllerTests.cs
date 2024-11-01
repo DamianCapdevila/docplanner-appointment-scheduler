@@ -24,7 +24,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
         private Mock<ISchedulerService> _schedulerServiceMock;
         private Mock<ILogger<SchedulerController>> _loggerMock;
         private Mock<IMapper> _mapperMock;
-        private SchedulerController _schedullerController;
+        private SchedulerController _schedulerController;
 
         [SetUp]
         public void Setup()
@@ -32,7 +32,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
             _schedulerServiceMock = new Mock<ISchedulerService>();
             _loggerMock = new Mock<ILogger<SchedulerController>>();
             _mapperMock = new Mock<IMapper>();
-            _schedullerController = new SchedulerController(_schedulerServiceMock.Object, _loggerMock.Object, _mapperMock.Object);
+            _schedulerController = new SchedulerController(_schedulerServiceMock.Object, _loggerMock.Object, _mapperMock.Object);
 
         }
 
@@ -54,7 +54,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                 .ReturnsAsync(await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(weeklyAvailability)));
 
             //Act
-            var result = await _schedullerController.GetAvailableSlots(request);
+            var result = await _schedulerController.GetAvailableSlots(request);
 
             //Assert
 
@@ -86,7 +86,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                 .ReturnsAsync(await Task.FromResult(Result<WeeklyAvailabilityDTO>.Success(weeklyAvailability)));
 
             //Act
-            var result = await _schedullerController.GetAvailableSlots(request);
+            var result = await _schedulerController.GetAvailableSlots(request);
 
             //Assert
 
@@ -136,7 +136,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
 
             // Act
             
-            var result = await _schedullerController.ScheduleAppointment(request);
+            var result = await _schedulerController.ScheduleAppointment(request);
 
             // Assert
             var createdResult = result as ObjectResult;
@@ -172,7 +172,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                             .ReturnsAsync(await Task.FromResult(Result<bool>.Failure(new Error("Error","Error code"))));
 
             // Act
-            var result = await _schedullerController.ScheduleAppointment(request);
+            var result = await _schedulerController.ScheduleAppointment(request);
 
             // Assert
             var objectResult = result as ObjectResult;
