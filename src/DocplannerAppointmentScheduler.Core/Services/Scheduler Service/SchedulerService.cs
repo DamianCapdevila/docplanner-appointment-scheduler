@@ -15,7 +15,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             return await _availabilityService.GetWeeklyAvailabilityAsync(weekNumber, year);
         }
 
-        public async Task<Result<bool>> ScheduleAppointmentAsync(AppointmentRequestDTO appointmentRequest)
+        public async Task<Result<bool>> ScheduleAppointmentAsync(AppointmentRequestDto appointmentRequest)
         {
             return await _availabilityService.TakeSlotAsync(appointmentRequest);
         }

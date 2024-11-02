@@ -119,7 +119,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                 }
             };
             
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>())).
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDto>())).
                                  ReturnsAsync(await Task.FromResult(Result<bool>.Success(true)));
             // Act
             
@@ -150,7 +150,7 @@ namespace DocplannerAppointmentScheduler.Api.Tests
                 }
             };
             
-            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>()))
+            _schedulerServiceMock.Setup(s => s.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDto>()))
                             .ReturnsAsync(await Task.FromResult(Result<bool>.Failure(new Error("Error","Error code"))));
 
             // Act

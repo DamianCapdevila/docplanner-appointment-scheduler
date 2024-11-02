@@ -194,9 +194,9 @@ namespace DocplannerAppointmentScheduler.TestUtilities.DataBuilders
             return startSlot >= lunchStart && startSlot < lunchEnd;
         }
 
-        public AppointmentRequestDTO GenerateFakeAppointmentRequestDTO()
+        public AppointmentRequestDto GenerateFakeAppointmentRequestDTO()
         {
-            var appointmentFaker = new Faker<AppointmentRequestDTO>()
+            var appointmentFaker = new Faker<AppointmentRequestDto>()
                 .RuleFor(a => a.Start, f => f.Date.Between(DateTime.Now, DateTime.Now.AddDays(7)))
                 .RuleFor(a => a.End, (f, a) => a.Start.AddMinutes(10))
                 .RuleFor(a => a.FacilityId, f => Guid.NewGuid())
@@ -206,9 +206,9 @@ namespace DocplannerAppointmentScheduler.TestUtilities.DataBuilders
             return appointmentFaker.Generate();
         }
 
-        public PatientDTO GenerateFakePatientDTO()
+        public PatientDto GenerateFakePatientDTO()
         {
-            var patientFaker = new Faker<PatientDTO>()
+            var patientFaker = new Faker<PatientDto>()
                 .RuleFor(p => p.Name, f => f.Name.FirstName())
                 .RuleFor(p => p.SecondName, f => f.Name.LastName())
                 .RuleFor(p => p.Email, f => f.Internet.Email())

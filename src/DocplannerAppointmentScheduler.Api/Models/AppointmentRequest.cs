@@ -7,30 +7,29 @@ namespace DocplannerAppointmentScheduler.Api.Models
 
     [DateFutureness(ErrorMessage = "Start and End times must be in the future.")]
     [DateRange(ErrorMessage = "Start time must be earlier than End time.")]
-    public class AppointmentRequest
+    public record AppointmentRequest
     {
         [DateFormat(ErrorMessage = "Start time must be in the format yyyy-MM-ddTHH:mm:ss.")]
         [Required(ErrorMessage = "Start time is required")]
-        public DateTime Start { get; set; }
+        public required DateTime Start { get; init; }
 
         [DateFormat(ErrorMessage = "End time must be in the format yyyy-MM-ddTHH:mm:ss.")]
         [Required(ErrorMessage = "End time is required")]
-        public DateTime End { get; set; }
+        public required DateTime End { get; init; }
 
         [Required(ErrorMessage = "FacilityId is required")]
-        public Guid FacilityId { get; set; }
-
-        [Required]
+        public required Guid FacilityId { get; init; }
+        
         [StringLength(100)]
-        public string Comment { get; set; }
+        public string? Comment { get; init; }
 
         [Required]
-        public Patient Patient { get; set; }
+        public required Patient Patient { get; init; }
         
         
-        public static implicit operator AppointmentRequestDTO(AppointmentRequest appointmentRequest)
+        public static implicit operator AppointmentRequestDto(AppointmentRequest appointmentRequest)
         {
-            return new AppointmentRequestDTO()
+            return new AppointmentRequestDto()
             {
                 Start = appointmentRequest.Start,
                 End = appointmentRequest.End,
@@ -41,27 +40,27 @@ namespace DocplannerAppointmentScheduler.Api.Models
         }
     }
 
-    public class Patient
+    public record Patient
     {
         [Required]
         [StringLength(100)]
-        public string Name { get; set; }
+        public required string Name { get; init; }
 
         [Required]
         [StringLength(100)]
-        public string SecondName { get; set; }
+        public required string SecondName { get; init; }
 
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; init; }
 
         [Required]
         [Phone]
-        public string Phone { get; set; }
+        public required string Phone { get; init; }
 
-        public static implicit operator PatientDTO(Patient patient)
+        public static implicit operator PatientDto(Patient patient)
         {
-            return new PatientDTO()
+            return new PatientDto()
             {
                 Name = patient.Name,
                 SecondName = patient.SecondName,

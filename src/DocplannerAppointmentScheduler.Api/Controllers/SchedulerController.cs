@@ -2,10 +2,7 @@
 using DocplannerAppointmentScheduler.Core.Services;
 using DocplannerAppointmentScheduler.Core.DTOs;
 using DocplannerAppointmentScheduler.Api.Models;
-using AutoMapper;
-using Newtonsoft.Json;
 using DocplannerAppointmentScheduler.Api.Infrastructure;
-using DocplannerAppointmentScheduler.Core.Results;
 
 namespace DocplannerAppointmentScheduler.Api.Controllers
 {
@@ -48,7 +45,7 @@ namespace DocplannerAppointmentScheduler.Api.Controllers
         {
             var result = await _schedulerService.ScheduleAppointmentAsync(request);
             return result.Match(
-                    success => Created("/appointments/{id}", $"Appointment created at {request.Start}"),
+                    _ => Created("/appointments/{id}", $"Appointment created at {request.Start}"),
                     serviceError => this.HandleServiceError(_logger, serviceError,
                     $"Scheduling appointment at {request.Start}")
             );

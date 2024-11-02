@@ -129,7 +129,7 @@ namespace DocplannerAppointmentScheduler.Core.Services
             }
         }
 
-        public async Task<Result<bool>> TakeSlotAsync(AppointmentRequestDTO request)
+        public async Task<Result<bool>> TakeSlotAsync(AppointmentRequestDto request)
         {
             try
             {

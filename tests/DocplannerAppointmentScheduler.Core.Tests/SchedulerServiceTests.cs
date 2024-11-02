@@ -74,13 +74,13 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         public async Task ScheduleAppointmentAsync_ShouldCall_AvailabilityService_TakeSlotAsync()
         {
             //Arrange
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(await Task.FromResult(Result<bool>.Success(It.IsAny<bool>())));
+            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDto>())).ReturnsAsync(await Task.FromResult(Result<bool>.Success(It.IsAny<bool>())));
 
             //Act
-            var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDTO>());
+            var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDto>());
 
             //Assert
-            _availabilityServiceMock.Verify(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>()), Times.Once);
+            _availabilityServiceMock.Verify(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDto>()), Times.Once);
         }
         [Test]
         public async Task ScheduleAppointmentAsync_ShouldReturnSameResponse_Than_AvailabilityServiceResponse()
@@ -90,10 +90,10 @@ namespace DocplannerAppointmentScheduler.Core.Tests
             var randomResponseMessage = fakeDataGenerator.GenerateFakeHttpResponse();
 
 
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ReturnsAsync(await Task.FromResult(Result<bool>.Success(true)));
+            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDto>())).ReturnsAsync(await Task.FromResult(Result<bool>.Success(true)));
 
             //Act
-            var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(new AppointmentRequestDTO());
+            var appointmentScheduled = await _schedulerService.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDto>());
 
             //Assert
             Assert.That(appointmentScheduled.Value, Is.EqualTo(true));
@@ -103,11 +103,11 @@ namespace DocplannerAppointmentScheduler.Core.Tests
         public void ScheduleAppointmentAsync_ShouldThrowException_WhenAvailabilityServiceThrowsException()
         {
             //Arrange
-            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDTO>())).ThrowsAsync(new Exception());
+            _availabilityServiceMock.Setup(s => s.TakeSlotAsync(It.IsAny<AppointmentRequestDto>())).ThrowsAsync(new Exception());
 
             //Act & Assert
             Assert.ThrowsAsync<Exception>(async () =>
-                await _schedulerService.ScheduleAppointmentAsync(new AppointmentRequestDTO()));
+                await _schedulerService.ScheduleAppointmentAsync(It.IsAny<AppointmentRequestDto>()));
         }
         #endregion
     }

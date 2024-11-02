@@ -2,21 +2,21 @@
 
 namespace DocplannerAppointmentScheduler.Core.DTOs
 { 
-    public class AppointmentRequestDTO
+    public record AppointmentRequestDto
     {
         
-        public DateTime Start { get; set; }
-        public DateTime End { get; set; }
-        public Guid FacilityId { get; set; }
-        public string? Comment { get; set; }
-        public PatientDTO? Patient { get; set; }
+        public required DateTime Start { get; init; }
+        public required DateTime End { get; init; }
+        public required Guid FacilityId { get; init; }
+        public string? Comment { get; init; }
+        public required PatientDto Patient { get; init; }
     }
 
-    public class PatientDTO
+    public record PatientDto
     {
-        public string? Name { get; set; }
-        public string? SecondName { get; set; }
-        public string? Email { get; set; }
-        public string? Phone { get; set; }
+        public required string Name { get; init; }
+        public required string SecondName { get; init; }
+        public required string Email { get; init; }
+        public required string Phone { get; init; }
     }
 }
